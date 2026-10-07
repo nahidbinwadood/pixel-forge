@@ -11,3 +11,4 @@ coverage
 packages/db/generated
 test-results
 playwright-report
+.playwright-mcp

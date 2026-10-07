@@ -36,6 +36,10 @@ const presets = {
 const sources = [
   { file: "F2UvQ-iIqqA.jpg", name: "lake", width: 1600, height: 1200 },
   { file: "6NHivat8d4w.jpg", name: "beach", width: 1200, height: 1500 },
+  // 4:5 cards for the landing "one photo, many looks" rails
+  { file: "XOhI_kW_TaM.jpg", name: "latte", width: 1000, height: 1250 },
+  { file: "uZA3P4sA3tM.jpg", name: "street", width: 1000, height: 1250 },
+  { file: "l0ah3UBLppo.jpg", name: "vase", width: 1000, height: 1250 },
 ];
 
 for (const s of sources) {

@@ -5,7 +5,7 @@ export const LOCALES = ["en"] as const;
 type Locale = (typeof LOCALES)[number];
 
 /** One JSON file per namespace in messages/<locale>/ — add the name here when you add a file. */
-const NAMESPACES = ["common", "landing", "auth", "nav", "home", "uploads", "settings", "admin", "paywall"] as const;
+const NAMESPACES = ["common", "landing", "sections", "auth", "nav", "home", "uploads", "settings", "admin", "paywall"] as const;
 
 // No locale in the URL: locale comes from a cookie (set from user settings). RTL-ready via `dir` in the root layout.
 export default getRequestConfig(async () => {

@@ -20,7 +20,7 @@ import { FormTextarea } from "@/components/form/form-textarea";
 import { Button } from "@/components/ui/button";
 
 const FONTS = [
-  "Clash Display",
+  "Bricolage Grotesque",
   "Geist",
   "Inter",
   "Poppins",

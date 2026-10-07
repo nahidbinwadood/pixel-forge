@@ -29,6 +29,7 @@
     radial-gradient(35% 45% at 80% 20%, rgb(45 168 255 / 0.28), transparent 70%),
     radial-gradient(45% 50% at 60% 85%, rgb(46 242 201 / 0.18), transparent 70%);
   --aurora-ink: #07070d;
+  --primary-solid: #5b3fe0; /* solid primary fill: AA with white text in both themes */
   --glow: 0 0 40px -10px rgb(124 92 255 / 0.55);
 
   /* ---- semantic ---- */
@@ -37,7 +38,7 @@
   --info: #2d8fe0;
 
   /* ---- light theme surfaces ---- */
-  --background: #f7f7fc;
+  --background: #fbfbfd;
   --foreground: #10112a;
   --surface-1: #ffffff;
   --surface-2: #ffffff;
@@ -105,9 +106,9 @@
 
 @theme inline {
   --font-sans: var(--font-geist);
-  --font-display: var(--font-clash);
+  --font-display: var(--font-display-face);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-clash);
+  --font-heading: var(--font-display-face);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -139,6 +140,7 @@
   --color-aurora-2: var(--aurora-2);
   --color-aurora-3: var(--aurora-3);
   --color-aurora-ink: var(--aurora-ink);
+  --color-primary-solid: var(--primary-solid);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -159,16 +161,19 @@
   --shadow-float: var(--shadow-float);
   --shadow-glow: var(--glow);
 
-  /* Fluid type scale (display sizes use Clash Display) */
-  --text-hero: clamp(2.75rem, 1.6rem + 5vw, 5.5rem);
-  --text-hero--line-height: 0.98;
-  --text-hero--letter-spacing: -0.025em;
+  /* Fluid type scale (display sizes use Bricolage Grotesque) */
+  --text-hero: clamp(2.75rem, 1.4rem + 5.4vw, 5.75rem);
+  --text-hero--line-height: 0.96;
+  --text-hero--letter-spacing: -0.045em;
+  --text-display: clamp(2.25rem, 1.5rem + 3vw, 3.75rem);
+  --text-display--line-height: 1;
+  --text-display--letter-spacing: -0.04em;
   --text-h1: clamp(2rem, 1.6rem + 1.6vw, 3rem);
   --text-h1--line-height: 1.05;
-  --text-h1--letter-spacing: -0.02em;
+  --text-h1--letter-spacing: -0.035em;
   --text-h2: clamp(1.5rem, 1.3rem + 0.8vw, 2rem);
   --text-h2--line-height: 1.15;
-  --text-h2--letter-spacing: -0.015em;
+  --text-h2--letter-spacing: -0.025em;
 
   --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
 
@@ -257,7 +262,8 @@
   h2,
   h3 {
     font-family: var(--font-display);
-    font-weight: 600;
+    font-weight: 700;
+    font-variation-settings: "wdth" 92;
     text-wrap: balance;
   }
   ::selection {

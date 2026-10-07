@@ -24,7 +24,7 @@ const GRADIENTS = [
 ] as const;
 
 const TYPE = [
-  { name: "text-hero · Clash Display", cls: "text-hero font-display font-semibold", sample: "Make it glow" },
+  { name: "text-hero · Bricolage Grotesque", cls: "text-hero font-display font-semibold", sample: "Make it glow" },
   { name: "text-h1", cls: "text-h1 font-display font-semibold", sample: "Your library" },
   { name: "text-h2", cls: "text-h2 font-display font-semibold", sample: "Recent designs" },
   { name: "body · Geist 16", cls: "text-base", sample: "Edit photos, design graphics and create with AI." },
