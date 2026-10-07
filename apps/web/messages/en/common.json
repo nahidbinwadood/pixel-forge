@@ -1,0 +1,13 @@
+{
+  "tagline": "From idea to publish-ready visual in minutes.",
+  "loading": "Loading…",
+  "save": "Save",
+  "saved": "Saved",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "retry": "Try again",
+  "error": "Something went wrong.",
+  "or": "or",
+  "credits": "{count, plural, one {# credit} other {# credits}}",
+  "comingSoon": "Coming soon"
+}

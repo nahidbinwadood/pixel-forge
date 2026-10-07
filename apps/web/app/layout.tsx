@@ -1,14 +1,12 @@
 import { APP_NAME } from "@pixelforge/shared";
 import { cn } from "cn";
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import type { ReactNode } from "react";
 import { Providers } from "@/components/providers";
+import { clash, geist, geistMono } from "@/lib/fonts";
 import "./globals.css";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
   title: { default: APP_NAME, template: `%s · ${APP_NAME}` },
@@ -18,8 +16,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#faf9f7" },
-    { media: "(prefers-color-scheme: dark)", color: "#151517" },
+    { media: "(prefers-color-scheme: light)", color: "#f7f7fc" },
+    { media: "(prefers-color-scheme: dark)", color: "#07070d" },
   ],
 };
 
@@ -31,7 +29,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     <html
       lang={locale}
       dir={RTL.has(locale) ? "rtl" : "ltr"}
-      className={cn("font-sans", inter.variable)}
+      className={cn(geist.variable, geistMono.variable, clash.variable)}
       suppressHydrationWarning
     >
       <body className="min-h-dvh antialiased">

@@ -28,14 +28,20 @@ services:
   s3-init:
     image: chrislusf/seaweedfs:latest
     depends_on: [s3]
-    restart: on-failure
+    restart: "no"
     entrypoint:
       - /bin/sh
       - -c
       - |
-        sleep 5
-        echo "s3.bucket.create -name pixelforge-uploads" | weed shell -master=s3:9333
-        echo "s3.bucket.create -name pixelforge-public" | weed shell -master=s3:9333
+        # Idempotent: "already exists" is fine. Retries until the master is up.
+        for b in pixelforge-uploads pixelforge-public; do
+          for i in 1 2 3 4 5 6 7 8 9 10; do
+            out=$$(echo "s3.bucket.create -name $$b" | weed shell -master=s3:9333 2>&1)
+            echo "$$out" | grep -qiE "created|exist" && break
+            sleep 2
+          done
+        done
+        exit 0
 
 volumes:
   pgdata:

@@ -1,0 +1,9 @@
+{
+  "greeting": "Hi {name}, what are you creating today?",
+  "startScratch": "Start from scratch",
+  "uploadPhoto": "Upload a photo",
+  "pickTemplate": "Pick a template",
+  "tryAi": "Try AI",
+  "recent": "Recent designs",
+  "recentEmpty": "Your designs will show up here. The editor arrives in the next release."
+}

@@ -1,0 +1,17 @@
+{
+  "title": "Uploads",
+  "drop": "Drag & drop images here, paste, or",
+  "browse": "browse files",
+  "types": "JPG, PNG, WebP, GIF or HEIC · up to {mb} MB",
+  "fromUrl": "Import from URL",
+  "urlPlaceholder": "https://example.com/photo.jpg",
+  "import": "Import",
+  "urlFailed": "Couldn't fetch that image. The site may block downloads, so save it and upload the file instead.",
+  "empty": "No uploads yet. Add your first image to get started.",
+  "processing": "Processing…",
+  "failed": "{name} couldn't be uploaded: {reason}",
+  "unsupported": "Unsupported file type",
+  "deleteConfirm": "Delete this upload? This can't be undone.",
+  "deleted": "Upload deleted",
+  "loadMore": "Load more"
+}

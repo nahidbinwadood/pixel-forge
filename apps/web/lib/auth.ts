@@ -1,9 +1,9 @@
 import "server-only";
 import { prisma } from "@pixelforge/db";
-import { APP_NAME, PLANS } from "@pixelforge/shared";
+import { APP_NAME, PASSWORD_MAX_LENGTH, PLANS, passwordSchema } from "@pixelforge/shared";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { APIError } from "better-auth/api";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { magicLink, twoFactor } from "better-auth/plugins";
 import { sendEmail } from "./email";
@@ -13,13 +13,22 @@ const google =
     ? { google: { clientId: process.env.GOOGLE_CLIENT_ID, clientSecret: process.env.GOOGLE_CLIENT_SECRET } }
     : undefined;
 
+/** Endpoints that set a password → the body field holding it. */
+const PASSWORD_FIELDS: Record<string, string> = {
+  "/sign-up/email": "password",
+  "/reset-password": "newPassword",
+  "/change-password": "newPassword",
+};
+
 export const auth = betterAuth({
   appName: APP_NAME,
   baseURL: process.env.APP_URL,
   database: prismaAdapter(prisma, { provider: "postgresql" }),
   emailAndPassword: {
     enabled: true,
-    minPasswordLength: 10,
+    // Full policy (upper/lower/number/special) is enforced in hooks.before below.
+    minPasswordLength: 6,
+    maxPasswordLength: PASSWORD_MAX_LENGTH,
     // ponytail: verification is sent but not required to use the app (PRD US1.1 lands user signed in).
     requireEmailVerification: false,
     resetPasswordTokenExpiresIn: 60 * 60,
@@ -51,6 +60,21 @@ export const auth = betterAuth({
       "/sign-in/magic-link": { window: 15 * 60, max: 5 },
       "/request-password-reset": { window: 15 * 60, max: 3 },
     },
+  },
+  hooks: {
+    // Server-side password policy: same zod schema as the client forms, so it can't be bypassed via the API.
+    before: createAuthMiddleware(async (ctx) => {
+      const field = PASSWORD_FIELDS[ctx.path];
+      if (!field) return;
+      const value = (ctx.body as Record<string, unknown> | undefined)?.[field];
+      const result = passwordSchema.safeParse(typeof value === "string" ? value : "");
+      if (!result.success) {
+        throw new APIError("BAD_REQUEST", {
+          code: "PASSWORD_POLICY",
+          message: result.error.issues.map((i) => i.message).join(", "),
+        });
+      }
+    }),
   },
   databaseHooks: {
     session: {

@@ -5,31 +5,65 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * PixelForge design tokens (docs/WIREFRAMES.md). shadcn variable names, PixelForge values.
- * Ember accent (--primary) on neutral warm ink. Deliberately not Picsart's purple/pink.
- * Theme: next-themes toggles `.dark` on <html> (system | light | dark).
+ * PixelForge "Aurora Studio" tokens (docs/design/AUDIT.md §3). shadcn variable names, Aurora values.
+ * Rule: aurora gradient = transformation (primary CTA, AI, before/after, generating). Flare = premium only.
+ * Dark is the default theme (next-themes toggles `.dark` / `.light` on <html>).
+ * Contrast notes: muted text lifted vs. the brief (#6B6E8F → #7E81A3) to pass AA on bg-0; aurora fills
+ * carry near-black ink (#07070D passes ≥4.6:1 across the whole gradient; white fails on the mint end).
  */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(0.985 0.002 75);
-  --foreground: oklch(0.2 0.006 285);
-  --card: oklch(1 0 0);
+  /* ---- shape ---- */
+  --radius: 0.75rem; /* 12px: buttons */
+  --radius-input: 0.5rem; /* 8px */
+  --radius-card: 1.25rem; /* 20px */
+  --radius-panel: 1.75rem; /* 28px: hero & feature panels */
+
+  /* ---- brand gradients (theme-independent) ---- */
+  --aurora-1: #7c5cff;
+  --aurora-2: #2da8ff;
+  --aurora-3: #2ef2c9;
+  --grad-aurora: linear-gradient(110deg, var(--aurora-1) 0%, var(--aurora-2) 55%, var(--aurora-3) 100%);
+  --grad-premium: linear-gradient(110deg, #ff5ca8 0%, #ffb35c 100%);
+  --grad-mesh:
+    radial-gradient(40% 50% at 20% 30%, rgb(124 92 255 / 0.35), transparent 70%),
+    radial-gradient(35% 45% at 80% 20%, rgb(45 168 255 / 0.28), transparent 70%),
+    radial-gradient(45% 50% at 60% 85%, rgb(46 242 201 / 0.18), transparent 70%);
+  --aurora-ink: #07070d;
+  --glow: 0 0 40px -10px rgb(124 92 255 / 0.55);
+
+  /* ---- semantic ---- */
+  --success: #1fbf83;
+  --warning: #d99a1f;
+  --info: #2d8fe0;
+
+  /* ---- light theme surfaces ---- */
+  --background: #f7f7fc;
+  --foreground: #10112a;
+  --surface-1: #ffffff;
+  --surface-2: #ffffff;
+  --surface-3: #eeeef8;
+  --card: var(--surface-2);
   --card-foreground: var(--foreground);
-  --popover: oklch(1 0 0);
+  --popover: #ffffff;
   --popover-foreground: var(--foreground);
-  --primary: oklch(0.63 0.19 38); /* ember #e8542b */
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.955 0.004 75);
+  --primary: #5b3fe0; /* violet, AA on white for text & rings */
+  --primary-foreground: #ffffff;
+  --secondary: #eeeef8;
   --secondary-foreground: var(--foreground);
-  --muted: oklch(0.955 0.004 75);
-  --muted-foreground: oklch(0.5 0.01 285);
-  --accent: oklch(0.95 0.03 45);
-  --accent-foreground: oklch(0.35 0.1 38);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.91 0.004 75);
-  --input: oklch(0.91 0.004 75);
-  --ring: oklch(0.63 0.19 38);
-  --sidebar: oklch(0.97 0.003 75);
+  --muted: #eeeef8;
+  --muted-foreground: #5e6180;
+  --text-2: #3c3f5c;
+  --accent: #ebe7ff;
+  --accent-foreground: #3b23b8;
+  --destructive: #d92d4f;
+  --border: rgb(16 17 42 / 0.1);
+  --input: rgb(16 17 42 / 0.14);
+  --ring: #5b3fe0;
+  --highlight: rgb(255 255 255 / 0.9); /* 1px inner top highlight */
+  --shadow-card: 0 1px 2px rgb(16 17 42 / 0.04), 0 8px 24px -12px rgb(16 17 42 / 0.12);
+  --shadow-float: 0 12px 40px -12px rgb(16 17 42 / 0.25);
+  --glass: rgb(255 255 255 / 0.72);
+  --sidebar: #ffffff;
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
   --sidebar-primary-foreground: var(--primary-foreground);
@@ -40,29 +74,46 @@
 }
 
 .dark {
-  --background: oklch(0.17 0.004 285);
-  --foreground: oklch(0.96 0.003 75);
-  --card: oklch(0.21 0.005 285);
-  --popover: oklch(0.21 0.005 285);
-  --primary: oklch(0.7 0.18 40); /* ember #ff6a3d */
-  --primary-foreground: oklch(0.17 0.004 285);
-  --secondary: oklch(0.26 0.006 285);
-  --muted: oklch(0.26 0.006 285);
-  --muted-foreground: oklch(0.7 0.01 285);
-  --accent: oklch(0.3 0.05 40);
-  --accent-foreground: oklch(0.92 0.06 45);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.7 0.18 40);
-  --sidebar: oklch(0.2 0.005 285);
+  --background: #07070d; /* bg-0 */
+  --foreground: #f5f6ff;
+  --surface-1: #0d0d18; /* panels */
+  --surface-2: #14142a; /* cards */
+  --surface-3: #1c1c38; /* raised / hover */
+  --card: var(--surface-2);
+  --popover: #12122a;
+  --primary: #9b85ff; /* lighter violet for text/rings on dark */
+  --primary-foreground: #07070d;
+  --secondary: #1c1c38;
+  --muted: #14142a;
+  --muted-foreground: #7e81a3;
+  --text-2: #a7a9c7;
+  --accent: #221d4d;
+  --accent-foreground: #d5ccff;
+  --destructive: #ff5c7a;
+  --success: #2ee59d;
+  --warning: #ffc24d;
+  --info: #4db8ff;
+  --border: rgb(255 255 255 / 0.08);
+  --input: rgb(255 255 255 / 0.12);
+  --ring: #9b85ff;
+  --highlight: rgb(255 255 255 / 0.06);
+  --shadow-card: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 12px 32px -16px rgb(0 0 0 / 0.6);
+  --shadow-float: 0 20px 60px -20px rgb(0 0 0 / 0.8);
+  --glass: rgb(13 13 24 / 0.68);
+  --sidebar: #0d0d18;
 }
 
 @theme inline {
-  --font-sans: var(--font-sans);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-geist);
+  --font-display: var(--font-clash);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-clash);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
@@ -73,12 +124,21 @@
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+  --color-text-2: var(--text-2);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-glass: var(--glass);
+  --color-aurora-1: var(--aurora-1);
+  --color-aurora-2: var(--aurora-2);
+  --color-aurora-3: var(--aurora-3);
+  --color-aurora-ink: var(--aurora-ink);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -87,11 +147,95 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+
+  --radius-sm: var(--radius-input);
+  --radius-md: 0.625rem;
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-xl: 1rem;
+  --radius-2xl: var(--radius-card);
+  --radius-3xl: var(--radius-panel);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-float: var(--shadow-float);
+  --shadow-glow: var(--glow);
+
+  /* Fluid type scale (display sizes use Clash Display) */
+  --text-hero: clamp(2.75rem, 1.6rem + 5vw, 5.5rem);
+  --text-hero--line-height: 0.98;
+  --text-hero--letter-spacing: -0.025em;
+  --text-h1: clamp(2rem, 1.6rem + 1.6vw, 3rem);
+  --text-h1--line-height: 1.05;
+  --text-h1--letter-spacing: -0.02em;
+  --text-h2: clamp(1.5rem, 1.3rem + 0.8vw, 2rem);
+  --text-h2--line-height: 1.15;
+  --text-h2--letter-spacing: -0.015em;
+
+  --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --animate-sweep: sweep 2.4s var(--ease-out-expo) infinite;
+  --animate-aurora-drift: aurora-drift 18s ease-in-out infinite alternate;
+  --animate-shimmer: shimmer 1.6s linear infinite;
+  @keyframes sweep {
+    from {
+      transform: translateX(-120%);
+    }
+    to {
+      transform: translateX(220%);
+    }
+  }
+  @keyframes aurora-drift {
+    from {
+      transform: translate3d(-4%, -2%, 0) scale(1);
+    }
+    to {
+      transform: translate3d(4%, 3%, 0) scale(1.08);
+    }
+  }
+  @keyframes shimmer {
+    from {
+      background-position: -200% 0;
+    }
+    to {
+      background-position: 200% 0;
+    }
+  }
+}
+
+/* ---- utilities built on tokens ---- */
+@utility bg-aurora {
+  background-image: var(--grad-aurora);
+}
+@utility bg-premium {
+  background-image: var(--grad-premium);
+}
+@utility bg-mesh {
+  background-image: var(--grad-mesh);
+}
+@utility text-aurora {
+  background-image: var(--grad-aurora);
+  background-clip: text;
+  color: transparent;
+}
+@utility glass {
+  background-color: var(--glass);
+  backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--border);
+}
+@utility surface-highlight {
+  box-shadow:
+    inset 0 1px 0 0 var(--highlight),
+    var(--shadow-card);
+}
+@utility shimmer {
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in oklab, var(--aurora-1) 18%, transparent) 40%,
+    color-mix(in oklab, var(--aurora-3) 18%, transparent) 60%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
 }
 
 @layer base {
@@ -100,9 +244,28 @@
   }
   html {
     @apply font-sans;
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
   }
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "ss01", "cv11";
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-wrap: balance;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--aurora-1) 35%, transparent);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 }
 
@@ -112,6 +275,8 @@
   *::after {
     /* biome-ignore lint/complexity/noImportantStyles: must beat component styles for reduced motion */
     animation-duration: 0.01ms !important;
+    /* biome-ignore lint/complexity/noImportantStyles: must beat component styles for reduced motion */
+    animation-iteration-count: 1 !important;
     /* biome-ignore lint/complexity/noImportantStyles: must beat component styles for reduced motion */
     transition-duration: 0.01ms !important;
   }

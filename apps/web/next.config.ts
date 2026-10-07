@@ -6,6 +6,8 @@ const config: NextConfig = {
   // Typecheck runs as its own step (`pnpm typecheck`) in CI.
   typescript: { ignoreBuildErrors: true },
   serverExternalPackages: ["bullmq", "ioredis"],
+  devIndicators: false,
+  images: { remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }] },
   // ponytail: this alias is all `next-intl/plugin` does for us. The plugin itself loads @swc/core's native
   // addon at config time, which is fragile on some Windows setups. Use the plugin again if we need its
   // message extraction/precompile features.

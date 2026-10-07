@@ -44,6 +44,57 @@ docs/               PRD, architecture, API spec, roadmap, risks, security, tests
 - Tests sit next to the code as `*.test.ts`. Run them with Vitest, and add Playwright E2E from Phase 1.
 - Biome formats with 2 spaces, double quotes and a 120-column line width.
 
+## Team rules (mandatory for every dev and every Claude session)
+
+### Next.js + React patterns
+- **Server Components by default.** Push `"use client"` down to the smallest interactive leaf, and never mark a whole page as a client component.
+- **Thin pages.** A `page.tsx` fetches data (in parallel with `Promise.all`, never a waterfall) and composes feature components from `components/<feature>/`. Business logic lives in `lib/` services, hooks and server actions, not in JSX.
+- **Every route segment with async data** gets `loading.tsx` (a skeleton matching the final layout) and `error.tsx` (message + retry). Use `notFound()` and `not-found.tsx` for missing entities.
+- **React patterns to use:**
+  - composition and children over prop drilling
+  - compound components for complex widgets (`Tabs`, `Field`)
+  - custom hooks for reusable stateful logic (`use-*.ts`)
+  - container/presentational split for data vs view
+  - providers for cross-cutting state
+  - controlled form state through react-hook-form
+- **Mutations** go through server actions or `/api/v1` route handlers, validated by the **same zod schema** on client and server (shared in `packages/shared` or next to the feature).
+- **Performance:**
+  - Heavy client code (editor, charts, QR) loads via `next/dynamic`.
+  - Images use `next/image`, except presigned or blob URLs. Fonts use `next/font`.
+  - Avoid barrel imports from big libraries.
+  - `useMemo`/`memo` only when profiling shows a need. Use `useTransition` for non-urgent updates.
+- **Accessibility:** semantic HTML first, a label on every control, `aria-label` on icon-only buttons, visible focus, keyboard reachable, and color never the only signal.
+
+### Forms
+- Every form control is its **own component** in `apps/web/components/form/`:
+  - text: `FormInput`, `FormPassword`, `FormTextarea`
+  - choice: `FormSelect`, `FormCombobox` (searchable), `FormCheckbox`, `FormRadioGroup`
+  - other: `FormSwitch`, `FormSlider`, plus new ones as needed
+- They are wired to **react-hook-form + zod** (`zodResolver`). Each renders its own label, description, error message and ARIA (`aria-invalid`, `aria-describedby`).
+- Feature code never hand-assembles `Label` + `Input` + error text. If a control type is missing, add a `Form*` component first.
+- Forms use `<Form>` (from `components/form/form.tsx`) and submit through `form.handleSubmit`. Server errors are mapped back with `form.setError`.
+
+### Password policy
+- At least **6 characters**, with **one uppercase, one lowercase, one number and one special character**.
+- The single source of truth is `passwordSchema` in `packages/shared/src/password.ts`. It is enforced in the client forms *and* on the server in Better Auth hooks (sign-up, reset, change password).
+- Every password field is a `FormPassword`: an eye toggle with an accessible "Show/Hide password" label, plus a live rules checklist on create/change forms.
+
+### Motion (Framer Motion everywhere)
+- Use **Framer Motion** (the `motion` package, imported from `motion/react`) for every interactive element and state change:
+  - hover/press, enter/exit
+  - list add/remove, layout changes, page content
+  - dialogs, sheets, popovers, toasts
+  - loading → loaded
+- Use the shared presets in `apps/web/lib/motion.ts` (springs, eases, durations, variants) and the wrappers in `apps/web/components/motion/`. No ad-hoc timings.
+- `MotionProvider` (root layout) sets `MotionConfig reducedMotion="user"` and `LazyMotion`, so use `m.*` components, not `motion.*`, to keep bundles small.
+- Animate `transform`/`opacity` only on hot paths. Motion must never block input or delay content (no >300 ms gates on interaction).
+
+### Design system ("Aurora Studio", docs/design/AUDIT.md)
+- Every color, radius, shadow, gradient and font comes from tokens in `apps/web/app/globals.css`. No hard-coded hex or arbitrary values in components.
+- **Aurora gradient = transformation** (primary CTA, AI actions, before/after, generating states). **Flare gradient = premium only.** Everything else stays calm.
+- Fonts: Clash Display (display), Geist (UI/body), Geist Mono (prompts, numbers, shortcuts). Dark is the default theme, and light must also pass AA.
+- Preview every new or changed component on `/design-system` (dev only).
+
 ## Definition of done
 Acceptance criteria are demoable · `pnpm check` and `pnpm build` are green · tests cover new logic · keyboard and screen-reader basics work · responsive · loading, empty, error and paywall states are handled · analytics event added (PRD event names) · PROGRESS.md updated · migration and seed updated · no secrets, no dead code, no unlinked TODOs.
 

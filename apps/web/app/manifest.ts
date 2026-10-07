@@ -10,8 +10,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Edit photos, design graphics and create with AI.",
     start_url: "/home",
     display: "standalone",
-    background_color: "#faf9f7",
-    theme_color: "#e8542b",
+    background_color: "#07070d",
+    theme_color: "#7c5cff",
     icons: [
       { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
       { src: "/icon-maskable.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },

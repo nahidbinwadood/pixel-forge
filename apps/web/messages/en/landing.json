@@ -1,0 +1,16 @@
+{
+  "title": "Create scroll-stopping visuals. No design skills needed.",
+  "subtitle": "Edit photos, design graphics and use AI tools, right in your browser.",
+  "ctaStart": "Get started free",
+  "ctaSignIn": "Sign in",
+  "tools": {
+    "editor": "Photo editor",
+    "editorDesc": "Crop, adjust, filter and retouch.",
+    "design": "Design from templates",
+    "designDesc": "Posts, stories, flyers and more.",
+    "bgRemove": "Background remover",
+    "bgRemoveDesc": "One click, clean cutouts.",
+    "aiImage": "AI image generator",
+    "aiImageDesc": "Describe it, get it."
+  }
+}

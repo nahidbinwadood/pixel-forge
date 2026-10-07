@@ -1,0 +1,23 @@
+{
+  "title": "Admin",
+  "users": "Users",
+  "flags": "Feature flags",
+  "health": "System health",
+  "search": "Search by email or name",
+  "role": "Role",
+  "plan": "Plan",
+  "credits": "Credits",
+  "grant": "Grant credits",
+  "ban": "Ban",
+  "unban": "Unban",
+  "banned": "Banned",
+  "joined": "Joined",
+  "noUsers": "No users match.",
+  "updated": "Updated",
+  "flagKey": "Key",
+  "enabled": "Enabled",
+  "rules": "Targeting",
+  "everyone": "Everyone",
+  "ok": "OK",
+  "down": "Down"
+}
