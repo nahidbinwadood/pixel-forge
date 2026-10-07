@@ -52,15 +52,18 @@ export function useTemplatesBrowser(initial: { items: TemplateSummary[]; nextCur
     }
   }, []);
 
+  // Keyed on the query *string*, not the `searchParams` object: `useSearchParams()` can hand out a
+  // new identity on a render that didn't actually change the query, and depending on the object
+  // itself would re-run this effect (and re-fetch) for no real filter change.
+  const queryString = searchParams.toString();
+  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally keyed on queryString, not searchParams (see comment above)
   useEffect(() => {
     if (skipNextFetch.current) {
       skipNextFetch.current = false;
       return;
     }
     void reload(filtersFromSearchParams(searchParams));
-    // `searchParams` (from next/navigation) only changes identity when the URL's query actually
-    // changes, so this re-runs exactly on filter changes, not on every render.
-  }, [reload, searchParams]);
+  }, [reload, queryString]);
 
   const setFilters = useCallback(
     (next: Partial<TemplateFilters>) => {

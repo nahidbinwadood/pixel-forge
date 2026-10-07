@@ -113,7 +113,11 @@ export function TemplatesClient({
         </div>
       ) : (
         <TemplateGrid
-          items={loading ? null : items}
+          // Only swap to the skeleton when there's nothing to show yet (e.g. a search that currently
+          // matches nothing, still loading). Nulling `items` on *every* reload would unmount and
+          // remount every card on each filter change/background revalidation, silently closing
+          // anything open inside one (the premium-info dialog, a focused control).
+          items={loading && items.length === 0 ? null : items}
           favoriteIds={favoriteIds}
           usingId={usingId}
           onToggleFavorite={toggleFavorite}
