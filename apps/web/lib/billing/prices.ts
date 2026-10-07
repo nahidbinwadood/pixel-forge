@@ -1,4 +1,3 @@
-import "server-only";
 import { PLANS, type PlanId } from "@pixelforge/shared";
 
 export type BillingInterval = "monthly" | "yearly";

@@ -1,5 +1,3 @@
-import "server-only";
-
 export interface CreditBundle {
   id: "starter" | "pro" | "studio";
   credits: number;
