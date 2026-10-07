@@ -54,6 +54,15 @@ export function FilterBar({
   const t = useTranslations("templates");
   const [q, setQ] = useState(filters.q);
   const firstRender = useRef(true);
+  // `onChange` (the hook's setFilters) gets a new identity on every filter change, because it
+  // closes over the current URL searchParams. Reading it through a ref keeps the debounce timer
+  // keyed only on `q`: if it also depended on `onChange`, clicking a category chip while the
+  // previous search-clear's timeout was still pending re-armed that timeout, and its *old* closure
+  // (built from the pre-click searchParams) later overwrote the category back out.
+  const onChangeRef = useRef(onChange);
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   // External filter changes (e.g. "Clear filters") resync the input.
   useEffect(() => {
@@ -67,9 +76,9 @@ export function FilterBar({
       firstRender.current = false;
       return;
     }
-    const id = setTimeout(() => onChange({ q }), 350);
+    const id = setTimeout(() => onChangeRef.current({ q }), 350);
     return () => clearTimeout(id);
-  }, [q, onChange]);
+  }, [q]);
 
   const hasFilters = filters.category || filters.sizePreset || filters.style || filters.color || filters.premium;
 
