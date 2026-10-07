@@ -1,1 +1,116 @@
-{}
+{
+  "soon": "Coming soon",
+  "today": "Available today",
+  "illustration": "Illustration",
+  "tools": {
+    "label": "Tools",
+    "title": "Every tool, one canvas.",
+    "body": "Start with a photo, a template or an idea. Every tool opens in the same editor, so you never juggle tabs or re-upload.",
+    "editor": {
+      "name": "Photo editor",
+      "benefit": "Light, color and crop with sliders that respond instantly. Your original is never touched."
+    },
+    "bg": { "name": "Background remover", "benefit": "Lift the subject off any background in one click." },
+    "ai": {
+      "name": "AI image generator",
+      "benefit": "Describe a scene and get images you can keep editing.",
+      "prompt": "a ceramic vase on linen, morning light"
+    },
+    "templates": { "name": "Templates", "benefit": "Posts, stories and flyers sized for every platform." },
+    "collage": { "name": "Collage", "benefit": "Drop in photos and let the grid do the layout." },
+    "sliders": { "brightness": "Brightness", "contrast": "Contrast", "saturation": "Saturation" }
+  },
+  "how": {
+    "label": "How it works",
+    "title": "From photo to post in three moves.",
+    "body": "No installs, no layers to learn. Bring a photo in, shape the light, and take it to whatever you're posting.",
+    "file": "street.jpg",
+    "exported": "Exported · 1080 × 1350 · PNG",
+    "panel": "Adjust",
+    "sliders": { "exposure": "Exposure", "contrast": "Contrast", "vibrance": "Vibrance" },
+    "steps": {
+      "upload": {
+        "title": "Bring a photo in",
+        "body": "Drag, paste or pick a JPG, PNG, WebP, GIF or HEIC. It lands in your private library, metadata stripped."
+      },
+      "adjust": {
+        "title": "Adjust and style",
+        "body": "Exposure, contrast, color and filters on a canvas that never overwrites your original."
+      },
+      "export": {
+        "title": "Export anywhere",
+        "body": "Download PNG, JPG or WebP sized for the place you're posting it."
+      }
+    }
+  },
+  "formats": {
+    "label": "Formats",
+    "title": "Sized for every feed.",
+    "body": "One photo, framed for every place it needs to go. Pick a size and the canvas fits itself.",
+    "badge": "Canvas presets arrive with the editor",
+    "square": "Instagram post",
+    "portrait": "Portrait post",
+    "story": "Story / Reel",
+    "youtube": "YouTube thumbnail",
+    "pin": "Pinterest pin"
+  },
+  "privacy": {
+    "label": "Privacy",
+    "title": "Your photos stay yours.",
+    "body": "Private by default, from the moment a file lands. These are things that work today, not promises.",
+    "private": {
+      "title": "Private to your workspace",
+      "body": "Uploads are visible only to you. Nothing is public, nothing is shared."
+    },
+    "exif": {
+      "title": "Location data stripped",
+      "body": "Every upload is re-encoded and its EXIF metadata, including GPS location, is removed."
+    },
+    "delete": {
+      "title": "Delete anytime",
+      "body": "Remove an upload and its files go with it. No trash folder to empty."
+    },
+    "export": {
+      "title": "Take your data with you",
+      "body": "Download everything as a file, or delete your account from Settings."
+    },
+    "before": "Before",
+    "after": "After upload",
+    "gps": "GPS 48.85, 2.29",
+    "camera": "Camera model",
+    "removed": "removed"
+  },
+  "faq": {
+    "label": "Questions",
+    "title": "Everything people ask first.",
+    "curious": "Still curious? Email the team. We read every message.",
+    "items": {
+      "free": {
+        "q": "Is it free?",
+        "a": "Yes. PixelForge is free while it's in beta. Paid plans with more AI credits and bigger exports come later, and we'll tell you before anything changes."
+      },
+      "today": {
+        "q": "What can I do today?",
+        "a": "Create an account, upload photos into your private library, and manage them from Home and Uploads. Uploads are checked, re-encoded and thumbnailed in seconds."
+      },
+      "next": {
+        "q": "What's coming next?",
+        "a": "The photo editor is next: adjustments, filters, crop and export. Templates and AI tools like background removal and image generation follow."
+      },
+      "privacy": {
+        "q": "Who can see my uploads?",
+        "a": "Only you. Uploads are private to your workspace, location metadata is stripped, and you can delete any file or your whole account at any time."
+      },
+      "formats": {
+        "q": "Which formats can I upload?",
+        "a": "JPG, PNG, WebP, GIF and HEIC, up to 25 MB per file on the Free plan."
+      }
+    }
+  },
+  "cta": {
+    "title": "Your next photo deserves better light.",
+    "body": "Free during beta. No card, nothing to install.",
+    "start": "Start free",
+    "signIn": "Sign in"
+  }
+}

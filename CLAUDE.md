@@ -92,7 +92,8 @@ docs/               PRD, architecture, API spec, roadmap, risks, security, tests
 ### Design system ("Aurora Studio", docs/design/AUDIT.md)
 - Every color, radius, shadow, gradient and font comes from tokens in `apps/web/app/globals.css`. No hard-coded hex or arbitrary values in components.
 - **Aurora gradient = transformation** (primary CTA, AI actions, before/after, generating states). **Flare gradient = premium only.** Everything else stays calm.
-- Fonts: Clash Display (display), Geist (UI/body), Geist Mono (prompts, numbers, shortcuts). Dark is the default theme, and light must also pass AA.
+- Fonts: Bricolage Grotesque (display, tight negative tracking), Geist (UI/body), Geist Mono (prompts, numbers, shortcuts). Light is the default theme, and dark must also pass AA.
+- Buttons are pills. `default` = solid violet (one primary per view); `aurora` = transformation/AI only; `contrast` = ink pill for secondary CTAs on marketing.
 - Preview every new or changed component on `/design-system` (dev only).
 
 ## Definition of done

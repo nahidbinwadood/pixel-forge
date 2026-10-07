@@ -42,6 +42,7 @@ Answers from the kickoff (2026-10-07) plus defaults chosen where the brief left 
 | D27 | "Upload from URL" fetches **in the browser** and reuses the normal upload path | No server-side fetch means no SSRF surface. Sites without CORS fail, and the UI says so |
 | D29 | Password policy: ≥ 6 chars + upper + lower + number + special (user decision 2026-10-07, replaces ≥ 10 chars). `passwordSchema` in `packages/shared` drives client forms and Better Auth `hooks.before` | Single source of truth, can't be bypassed via the API |
 | D30 | All forms use react-hook-form + zod through `components/form/Form*`; Framer Motion (`motion`) for all animation via `lib/motion.ts` | User mandate; see CLAUDE.md Team rules |
+| D31 | Redesign v2 (user feedback + references CherryMockup / cherrypdf / Picsart): Bricolage Grotesque replaces Clash Display; **light default**; pill buttons with solid violet primary (aurora reserved for transformation) | User disliked v1; references are light, airy, tight-grotesque |
 | D28 | PWA = manifest + icons, no service worker yet | Chromium installs without one. The SW ships with editor offline mode (PRD US3.5) |
 
 ## Product assumptions

@@ -3,9 +3,9 @@
 Source of truth: `apps/web/app/globals.css` (CSS variables + Tailwind v4 `@theme`). Never hard-code values in components; add a token here first.
 
 ## Color
-| Token (Tailwind) | Dark (default) | Light | Use |
+| Token (Tailwind) | Dark | Light (default) | Use |
 |---|---|---|---|
-| `bg-background` | `#07070D` | `#F7F7FC` | page |
+| `bg-background` | `#07070D` | `#FBFBFD` | page |
 | `bg-surface-1` | `#0D0D18` | `#FFFFFF` | panels, inputs |
 | `bg-surface-2` / `bg-card` | `#14142A` | `#FFFFFF` | cards |
 | `bg-surface-3` | `#1C1C38` | `#EEEEF8` | hover / raised |
@@ -27,7 +27,7 @@ Source of truth: `apps/web/app/globals.css` (CSS variables + Tailwind v4 `@theme
 ## Type
 | Utility | Face | Size |
 |---|---|---|
-| `font-display` (h1–h3 default) | Clash Display 500/600/700 | `text-hero` clamp(44→88px, lh .98, −2.5%) · `text-h1` clamp(32→48) · `text-h2` clamp(24→32) |
+| `font-display` (h1–h3 default, 700, wdth 92) | Bricolage Grotesque (opsz+wdth axes) | `text-hero` clamp(44→92px, lh .96, −4.5%) · `text-display` clamp(36→60, −4%) · `text-h1` clamp(32→48) · `text-h2` clamp(24→32) |
 | `font-sans` (body/UI) | Geist | 15–16px body, 13px small, line-height ~1.55 |
 | `font-mono` | Geist Mono | prompts, credits, shortcuts, numbers (`tabular-nums`) |
 
@@ -53,3 +53,6 @@ Source of truth: `apps/web/app/globals.css` (CSS variables + Tailwind v4 `@theme
 | Variants | `fadeUp`, `fadeIn`, `scaleIn`, `listItem`, `stagger()` | |
 | Interaction | `liftHover` (cards), `pressable` (buttons) | |
 | CSS keyframes | `animate-sweep`, `animate-aurora-drift`, `animate-shimmer` | GPU-only, reduced-motion safe |
+
+## Buttons
+All pills (`rounded-full`). `default` solid `--primary-solid` #5B3FE0 + white (AA both themes) · `aurora` transformation/AI only · `contrast` ink pill · `premium` flare, upsell only · `secondary`/`outline`/`ghost`/`glass`/`destructive`/`link`.

@@ -1,79 +1,40 @@
 {
   "nav": {
     "tools": "Tools",
+    "looks": "Looks",
     "how": "How it works",
     "faq": "FAQ",
     "signIn": "Sign in",
-    "start": "Start free",
-    "menu": "Main"
+    "start": "Sign up free",
+    "menu": "Main",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "theme": "Toggle color theme"
   },
   "hero": {
-    "titleLead": "Drag the light.",
-    "titleTail": "Watch your photo",
-    "titleKeyword": "transform.",
-    "subtitle": "PixelForge is a photo editor and design studio in your browser. Adjust, filter, cut out and create without the learning curve.",
-    "cta": "Start creating, free",
-    "promptLabel": "Describe what you want to make or drop an image",
-    "promptPlaceholder": "Describe what you want or drop an image…",
-    "promptSubmit": "Start",
-    "note": "Free during beta · no card needed",
-    "sweepHint": "Try it: drag the light across the photo.",
-    "sweepAlt": "A mountain lake under storm clouds, before and after editing"
-  },
-  "tools": {
-    "title": "Every tool, one canvas",
-    "subtitle": "Start with a photo, a template or an idea. Everything opens in the same editor.",
-    "soon": "Coming soon",
-    "available": "Available now",
-    "editor": "Photo editor",
-    "editorDesc": "Crop, adjust light and color, apply filters. Your original is never touched.",
-    "bgRemove": "Background remover",
-    "bgRemoveDesc": "Lift the subject off any background in one click.",
-    "aiImage": "AI image generator",
-    "aiImageDesc": "Describe a scene and get images you can keep editing.",
-    "templates": "Templates",
-    "templatesDesc": "Posts, stories and flyers sized for every platform.",
-    "collage": "Collage",
-    "collageDesc": "Drop in photos and let the grid do the layout."
-  },
-  "how": {
-    "title": "From photo to post in three moves",
-    "steps": {
-      "upload": "Upload or describe",
-      "uploadDesc": "Drop a photo, paste one, or describe what you want to create.",
-      "edit": "Edit with light",
-      "editDesc": "Pull sliders, try filters, compare before and after with a single drag.",
-      "export": "Export anywhere",
-      "exportDesc": "Download PNG, JPG or WebP sized for the platform you post on."
-    }
-  },
-  "showcase": {
-    "title": "Same photo. Better light.",
-    "subtitle": "Every edit is non-destructive. Slide back to the original whenever you want, and nothing is lost.",
-    "alt": "A woman in a sun hat on a beach at sunset, before and after editing"
-  },
-  "faq": {
-    "title": "Questions, answered",
-    "items": {
-      "price": {
-        "q": "Is it free?",
-        "a": "Yes. PixelForge is free while it's in beta. Every account gets monthly AI credits. Paid plans with more credits and higher export sizes come later, and we'll tell you before anything changes."
-      },
-      "coming": {
-        "q": "What's available today, and what's coming?",
-        "a": "Today you can create an account and build your photo library. The editor, templates and AI tools (background remover, image generator, AI writer) are rolling out over the coming releases."
-      },
-      "privacy": {
-        "q": "Who can see my uploads?",
-        "a": "Only you. Uploads are private by default, location and camera data are stripped from every image, and you can download or delete all of your data from Settings at any time."
-      }
-    }
-  },
-  "cta": {
-    "title": "Your next photo is waiting for better light.",
-    "button": "Start creating, free"
+    "eyebrow": "Free during beta · Private by default · Nothing to install",
+    "titleLead": "Photo editing that makes",
+    "titleKeyword": "every shot",
+    "titleTail": "look intentional.",
+    "cropTag": "1080 × 1350",
+    "subtitle": "Fix the light, grade the color and frame it for any feed, right in your browser. No plugins, no learning curve.",
+    "dropTitle": "Drop a photo here",
+    "dropBody": "or choose one from your device; it opens in your library",
+    "dropActive": "Release to start",
+    "choose": "Choose a photo",
+    "describe": "Describe an idea",
+    "checks": {
+      "card": "No credit card",
+      "private": "Your uploads stay private",
+      "browser": "Works on any modern browser"
+    },
+    "floatLeftAlt": "A latte with heart latte art on coffee beans, film-graded",
+    "floatRightAlt": "A blue ceramic vase on a white background, vivid edit",
+    "chipFilm": "Film",
+    "chipVivid": "Vivid"
   },
   "footer": {
+    "tagline": "Edit photos and design for every feed, right in your browser.",
     "product": "Product",
     "company": "Company",
     "legal": "Legal",
@@ -81,7 +42,55 @@
     "privacy": "Privacy",
     "contentPolicy": "Content policy",
     "about": "About",
-    "comingSoon": "Pages coming soon",
-    "rights": "© {year} PixelForge. Made for people who'd rather create than configure."
+    "contact": "Contact",
+    "soon": "soon",
+    "rights": "© {year} PixelForge. Made for people who'd rather create than configure.",
+    "theme": "Theme"
+  },
+  "looks": {
+    "eyebrow": "Looks",
+    "title": "One photo. Every mood.",
+    "subtitle": "Start from the same shot and try a different feeling in one tap. Your original never changes.",
+    "tabsLabel": "Choose a photo",
+    "photos": {
+      "latte": "Latte",
+      "street": "Street",
+      "vase": "Vase",
+      "lake": "Lake"
+    },
+    "presets": {
+      "original": "Original",
+      "vivid": "Vivid",
+      "film": "Film",
+      "mono": "Mono"
+    },
+    "presetDesc": {
+      "original": "Straight from the camera",
+      "vivid": "Punchier color and contrast",
+      "film": "Warm highlights, lifted blacks",
+      "mono": "High-contrast black and white"
+    },
+    "prev": "Previous looks",
+    "next": "Next looks",
+    "rail": "Looks for {photo}",
+    "caption": "Real edits made with the same adjustments as the editor.",
+    "alt": "{photo} photo with the {preset} look",
+    "ctaTitle": "Your photo is next.",
+    "ctaBody": "Upload one and try every look in your own library.",
+    "ctaButton": "Try it free"
+  },
+  "sweep": {
+    "eyebrow": "Try it",
+    "title": "Drag the light. Compare instantly.",
+    "body": "Every adjustment is non-destructive. Slide between the edit and the original to see exactly what changed.",
+    "points": {
+      "light": "Brightness, exposure, highlights and shadows",
+      "contrast": "Contrast, clarity and sharpness",
+      "color": "Saturation, temperature and tint",
+      "filters": "One-tap filters with adjustable strength"
+    },
+    "file": "lake.jpg · 1600 × 1200",
+    "alt": "A mountain lake under storm clouds, before and after editing",
+    "cta": "Start editing, free"
   }
 }

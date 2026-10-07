@@ -1,6 +1,6 @@
 # Design Audit & Direction (Phase A)
 
-**Date:** 2026-10-07. **Scope:** every route that exists today (landing, sign-in, sign-up, forgot-password, home, uploads empty + filled, settings, admin users / flags / health). Each was captured at 375 / 768 / 1280 / 1920 px in light and dark: 88 screenshots in [`screenshots/before/`](screenshots/before/), produced by `npx playwright test -c scripts/screenshots`.
+**Date:** 2026-10-07. **Scope:** every route that exists today (landing, sign-in, sign-up, forgot-password, home, uploads empty + filled, settings, admin users / flags / health). Each was reviewed at 375 / 768 / 1280 / 1920 px in light and dark (the screenshots were working files and have been removed from the repo).
 
 Context: only Phase 1 (foundation) exists. The editor, templates, AI tools, pricing, video and community are **not built yet**, so they can't be audited. Their design is planned in the Direction section and gets implemented when each feature lands.
 

@@ -4,7 +4,7 @@
 
 ### Done (Design redesign, 2026-10-07)
 - Aurora Studio design system, form component library, password policy, Framer Motion everywhere, all existing screens redesigned. See `docs/design/CHANGELOG.md`.
-- Verified: lint ✓, typecheck ✓, unit 21/21 ✓, build ✓, E2E 7/7 ✓, 88 after-screenshots reviewed.
+- Verified: lint ✓, typecheck ✓, unit 21/21 ✓, build ✓, E2E 7/7 ✓, all screens reviewed at 4 widths × 2 themes.
 
 
 ### Done (Phase 1: Foundation, 2026-10-07)

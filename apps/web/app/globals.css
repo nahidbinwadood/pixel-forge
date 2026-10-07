@@ -164,10 +164,10 @@
   /* Fluid type scale (display sizes use Bricolage Grotesque) */
   --text-hero: clamp(2.75rem, 1.4rem + 5.4vw, 5.75rem);
   --text-hero--line-height: 0.96;
-  --text-hero--letter-spacing: -0.045em;
+  --text-hero--letter-spacing: -0.035em;
   --text-display: clamp(2.25rem, 1.5rem + 3vw, 3.75rem);
   --text-display--line-height: 1;
-  --text-display--letter-spacing: -0.04em;
+  --text-display--letter-spacing: -0.032em;
   --text-h1: clamp(2rem, 1.6rem + 1.6vw, 3rem);
   --text-h1--line-height: 1.05;
   --text-h1--letter-spacing: -0.035em;
@@ -263,7 +263,7 @@
   h3 {
     font-family: var(--font-display);
     font-weight: 700;
-    font-variation-settings: "wdth" 92;
+    font-variation-settings: "wdth" 95;
     text-wrap: balance;
   }
   ::selection {

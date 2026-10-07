@@ -1,7 +1,7 @@
 # Design changelog
 
 ## 2026-10-07: Aurora Studio redesign (Phases B + C)
-Before/after screenshots: [`screenshots/before/`](screenshots/before/) and [`screenshots/after/`](screenshots/after/). Each set covers every route at 375/768/1280/1920 px in light and dark. Regenerate with `SHOT_LABEL=after npx playwright test -c scripts/screenshots`.
+Screens were reviewed at 375/768/1280/1920 px in both themes (working screenshots are not kept in the repo).
 
 - **Foundation:**
   - Aurora tokens, dark by default, AA contrast, with the muted text lifted from the brief's value.
@@ -22,3 +22,17 @@ Before/after screenshots: [`screenshots/before/`](screenshots/before/) and [`scr
 - **Fixed along the way:**
   - The active chip rendered behind its card (stacking context).
   - `(app)/loading.tsx` made `/admin` return 200 instead of 404 for non-admins, so loading skeletons are now per segment.
+
+## 2026-10-07: Redesign v2 (user feedback; references CherryMockup, cherrypdf, Picsart)
+- **Type and buttons:** Bricolage Grotesque display font, light default theme, pill buttons (solid violet primary; aurora reserved for transformation/AI).
+- **Landing page rebuilt:**
+  - Pill-group navigation.
+  - Centered hero with the keyword in a crop-tool frame, a drop card, honest checkmarks and floating edited photos.
+  - Tool bento built on real photos.
+  - "One photo. Every mood." rail of real preset edits.
+  - Light-sweep feature.
+  - "How it works" panel with an app-window mock.
+  - Dark "Sized for every feed" band.
+  - "Your photos stay yours" privacy section (real Phase 1 features).
+  - FAQ, final CTA and a large footer.
+- **Housekeeping:** removed working screenshots, the screenshot script, and unused UI components.
