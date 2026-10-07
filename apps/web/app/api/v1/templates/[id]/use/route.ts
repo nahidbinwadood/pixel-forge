@@ -1,5 +1,5 @@
 import { requireUser, route } from "@/lib/api";
-import { rateLimit } from "@/lib/redis";
+import { rateLimit } from "@/lib/rate-limit";
 import { useTemplate } from "@/lib/templates";
 
 /** "Use template" (PRD US7.2): creates a Project from the template document; the template itself never changes. */

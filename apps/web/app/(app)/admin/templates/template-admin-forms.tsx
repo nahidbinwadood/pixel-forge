@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { createTemplate, getProjectDocument, updateTemplate } from "@/lib/admin-templates";
-import { SIZE_PRESETS } from "@/lib/templates";
+import { SIZE_PRESETS } from "@/lib/template-filters";
 import type { TemplateAdminRow, TemplateCategoryOption } from "./types";
 
 const schema = z.object({

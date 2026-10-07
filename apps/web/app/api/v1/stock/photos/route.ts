@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ApiError, requireUser, route } from "@/lib/api";
-import { rateLimit } from "@/lib/redis";
+import { rateLimit } from "@/lib/rate-limit";
 
 const Query = z.object({
   q: z.string().trim().min(1).max(100),

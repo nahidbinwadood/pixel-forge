@@ -9,8 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import type { TemplateFilters } from "@/lib/template-filters";
-import { SIZE_PRESETS } from "@/lib/templates";
+import { SIZE_PRESETS, type TemplateFilters } from "@/lib/template-filters";
 
 const STYLES = ["bold", "elegant", "minimal", "modern", "playful", "vibrant"] as const;
 const COLORS = [
