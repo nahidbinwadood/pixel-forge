@@ -1,11 +1,8 @@
 import "server-only";
+import { prisma } from "@pixelforge/db";
 import nodemailer, { type Transporter } from "nodemailer";
-import {
-  exportReadyTemplate,
-  lowCreditsTemplate,
-  type SentEmail,
-  welcomeTemplate,
-} from "@/emails/templates";
+import { exportReadyTemplate, lowCreditsTemplate, type SentEmail, welcomeTemplate } from "@/emails/templates";
+import { creditBalance } from "./account";
 
 interface Mail {
   to: string;
@@ -51,14 +48,18 @@ export async function sendWelcomeEmail(to: string, name?: string | null): Promis
 }
 
 /**
- * Fire after any credit debit (job charge). Intentionally not wired into the AI job/credit-charge
- * code here (that's Phase 4 / the AI agent's domain) — call this with the balance *after* the debit.
- * No-ops at balance >= 5, and never throws.
+ * Call after any credit debit (job charge) with the balance *after* the debit. Looks up the user's
+ * current balance and email itself, so the AI job code (A2) only needs the user id. No-ops at
+ * balance >= 5, and never throws — a failed notification must never fail the job that triggered it.
  */
-export async function maybeSendLowCreditsEmail(to: string, balanceAfter: number): Promise<void> {
-  if (balanceAfter >= 5) return;
+export async function sendLowCreditsEmail(userId: string): Promise<void> {
   try {
-    await deliver(to, lowCreditsTemplate(balanceAfter));
+    const [user, balance] = await Promise.all([
+      prisma.user.findUnique({ where: { id: userId }, select: { email: true } }),
+      creditBalance(userId),
+    ]);
+    if (!user || balance >= 5) return;
+    await deliver(user.email, lowCreditsTemplate(balance));
   } catch (e) {
     console.error("[email] low-credits send failed", e);
   }
