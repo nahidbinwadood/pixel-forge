@@ -38,6 +38,9 @@ importers:
       '@hookform/resolvers':
         specifier: ^5.9.1
         version: 5.9.1(@standard-schema/spec@1.1.0)(ajv-formats@2.1.1(ajv@8.20.0))(ajv@8.20.0)(effect@3.20.0)(react-hook-form@7.89.0(@types/react@19.3.0)(react@19.3.0))(valibot@1.4.2(typescript@7.0.2))(zod@4.6.5)
+      '@pixelforge/ai':
+        specifier: workspace:*
+        version: link:../../packages/ai
       '@pixelforge/db':
         specifier: workspace:*
         version: link:../../packages/db
@@ -138,6 +141,9 @@ importers:
       '@aws-sdk/client-s3':
         specifier: ^3.1146.0
         version: 3.1146.0
+      '@pixelforge/ai':
+        specifier: workspace:*
+        version: link:../../packages/ai
       '@pixelforge/db':
         specifier: workspace:*
         version: link:../../packages/db
