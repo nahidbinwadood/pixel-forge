@@ -13,6 +13,7 @@
     "@aws-sdk/client-s3": "^3.1146.0",
     "@aws-sdk/s3-request-presigner": "^3.1146.0",
     "@hookform/resolvers": "^5.9.1",
+    "@pixelforge/ai": "workspace:*",
     "@pixelforge/db": "workspace:*",
     "@pixelforge/editor-core": "workspace:*",
     "@pixelforge/shared": "workspace:*",
