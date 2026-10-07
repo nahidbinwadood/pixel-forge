@@ -1,6 +1,6 @@
 # Progress
 
-## Status: Wave 1 build is paused (stopped by the user on 2026-10-07). See `docs/agents/README.md`.
+## Status: building. A3 + A5 are finishing on `a3-final` / `a5-final`, then wave 2 (A6 + A7, then A8). See `docs/agents/README.md`.
 
 ### Vercel deployment (2026-10-07)
 - Worker, BullMQ and Redis removed. Jobs run via `after()`, crons via Vercel Cron, rate limits in Postgres (ASSUMPTIONS D-V1…V7). Guide: `docs/DEPLOY.md`.
@@ -18,7 +18,7 @@
 | A3 | Phase 3 templates + libraries | ⏸ WIP, 5 commits on branch `worktree-agent-a8c93542c7bd0b08f`. Last commit is an unchecked `wip:`. It was mid-way through debugging a build error |
 | A5 | Phases 8 + 9 community + teams | ⏸ WIP, 2 commits on branch `worktree-agent-a30b258b35dae3611`. Last commit is an unchecked `wip:`. It was mid-way through the UI (post-card) |
 
-Merged main (after the Vercel change): lint ✓, typecheck ✓, unit 94/94 ✓, `pnpm build` ✓, migration ✓. E2E: see the Vercel section.
+Merged main (after the Vercel change): lint ✓, typecheck ✓, unit 94/94 ✓, `pnpm build` ✓, migration ✓, E2E 19/19 ✓.
 
 **To resume:**
 1. Resume A3 and A5. Either message the agents, or start fresh agents on their branches with RULES.md and their brief.
