@@ -1,0 +1,97 @@
+{
+  "pricing": {
+    "title": "Simple pricing, upgrade when you need it",
+    "subtitle": "Every plan includes the full editor. Paid plans add AI credits, bigger exports and no watermark.",
+    "toggle": { "monthly": "Monthly", "yearly": "Yearly", "savings": "2 months free" },
+    "mostPopular": "Most popular",
+    "perMonth": "/mo",
+    "perYear": "/yr",
+    "credits": "{count} AI credits / month",
+    "cta": {
+      "current": "Current plan",
+      "subscribe": "Subscribe",
+      "free": "Start free",
+      "waitlist": "Join waitlist",
+      "manage": "Manage in Settings",
+      "signInFirst": "Sign in to subscribe"
+    },
+    "plans": {
+      "free": { "name": "Free", "blurb": "Try every tool, export with a small watermark." },
+      "plus": { "name": "Plus", "blurb": "For regular creators who want clean exports." },
+      "pro": { "name": "Pro", "blurb": "Heavier AI use and larger exports." },
+      "team": { "name": "Team", "blurb": "Shared seats for a small team." }
+    },
+    "comparison": {
+      "title": "Compare plans",
+      "rows": {
+        "monthlyCredits": "Monthly AI credits",
+        "maxExportPx": "Max export size",
+        "watermark": "Export watermark",
+        "premiumContent": "Premium templates & filters",
+        "storageMb": "Storage",
+        "maxUploadMb": "Max upload size",
+        "seats": "Seats"
+      },
+      "watermarkOn": "Applied",
+      "watermarkOff": "None",
+      "yes": "Included",
+      "no": "—",
+      "px": "{px}px",
+      "mb": "{gb} GB",
+      "seatCount": "{count, plural, one {# seat} other {# seats}}"
+    },
+    "bundles": {
+      "title": "Need credits without a subscription?",
+      "subtitle": "One-time top-ups on top of whatever plan you're on. They never expire.",
+      "buy": "Buy credits",
+      "credits": "{count} credits",
+      "price": "${amount}"
+    },
+    "waitlist": {
+      "title": "Not open for purchase yet",
+      "body": "Billing is rolling out gradually. Leave your email and we'll let you know the moment it's ready.",
+      "email": "Email",
+      "submit": "Join waitlist",
+      "success": "You're on the list — we'll email you when it's ready.",
+      "error": "Something went wrong. Try again in a moment."
+    },
+    "faq": {
+      "label": "Billing FAQ",
+      "title": "Questions about pricing",
+      "items": {
+        "cancel": {
+          "q": "Can I cancel anytime?",
+          "a": "Yes. Cancel from Settings → Billing, no questions asked. You keep access until the end of the period you already paid for."
+        },
+        "credits": {
+          "q": "What are AI credits?",
+          "a": "AI tools (background remover, image generator, writer) are metered by credits, because each call costs us a provider fee. Editing, templates and exports are never metered."
+        },
+        "rollover": {
+          "q": "Do unused credits roll over?",
+          "a": "No — the monthly grant tops you back up to your plan's allowance rather than stacking. One-time credit bundles never expire, though."
+        },
+        "switch": {
+          "q": "Can I change plans later?",
+          "a": "Yes, anytime from Settings → Billing. Stripe prorates the difference automatically."
+        }
+      }
+    },
+    "status": {
+      "success": "Thanks! Your plan updates in a moment — refresh Settings if it hasn't yet.",
+      "canceled": "Checkout canceled. No changes were made."
+    }
+  },
+  "settings": {
+    "title": "Billing",
+    "description": "Your plan, usage and invoices.",
+    "currentPlan": "Current plan",
+    "manage": "Manage billing",
+    "upgrade": "View plans",
+    "invoices": "Invoices",
+    "noInvoices": "No invoices yet.",
+    "invoiceAmount": "{amount} · {status}",
+    "disabledNote": "Billing isn't enabled in this environment yet — upgrades go through the waitlist on the pricing page.",
+    "viewPricing": "View pricing"
+  }
+}

@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale } from "next-intl/server";
 import type { ReactNode } from "react";
+import { CookieConsent } from "@/app/(site)/_components/cookie-consent";
 import { Providers } from "@/components/providers";
 import { display, geist, geistMono } from "@/lib/fonts";
 import "./globals.css";
@@ -35,6 +36,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <body className="min-h-dvh antialiased">
         <NextIntlClientProvider>
           <Providers>{children}</Providers>
+          <CookieConsent />
         </NextIntlClientProvider>
       </body>
     </html>
