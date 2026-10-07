@@ -1,6 +1,7 @@
 import { prisma } from "@pixelforge/db";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { TryAiCard } from "@/components/ai/try-ai-card";
 import { personalWorkspaceId, userPlan } from "@/lib/account";
 import { requireUser } from "@/lib/api";
 import { recentProjects } from "@/lib/projects";
@@ -53,6 +54,8 @@ export default async function HomePage() {
         <QuickActions maxMb={plan.maxUploadMb} userId={user.id} className="lg:col-span-5" />
         <RecentDesigns designs={designs} userId={user.id} className="lg:col-span-7" />
       </section>
+
+      <TryAiCard />
 
       <Library items={items} />
     </div>

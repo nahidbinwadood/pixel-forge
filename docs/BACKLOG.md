@@ -22,3 +22,8 @@ Items deferred out of a phase or referenced by a TODO in code. Format: `B-<n> ·
 - B-A1-2 · Purge designs that sit in trash for 30 days (worker cron) + a Trash view to restore them · Phase 3
 - B-A1-3 · Multi-page designs in the editor UI (the document model already supports pages; the UI edits page 1) · Phase 6
 - B-A1-4 · Sticker/stock library in the Elements panel (sticker nodes render as placeholders until then) · Phase 3
+- B-10, B-11, B-15 · done in Phase 4 as worker crons (`apps/worker/src/cron/*`, repeatable BullMQ jobs on queue `maintenance`)
+- B-17 · Seed / reproducible generations once the image provider supports it (ASSUMPTIONS A2-7) · V2
+- B-18 · "Credits low" email when a charge leaves the balance under ~20% of the plan allowance (needs the A4 email helper) · Phase 5
+- B-19 · Refine-mask brush for background removal (PRD US9.2) and a dedicated matting model behind `editImage` · Phase 6
+- B-20 · Purge job skips users whose projects live in a shared team workspace (FK on `Project.creator`); decide reassign-vs-delete when Teams land · Phase 9

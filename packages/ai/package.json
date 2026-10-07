@@ -1,0 +1,19 @@
+{
+  "name": "@pixelforge/ai",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p ."
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.4"
+  },
+  "dependencies": {
+    "@google/genai": "^2.27.0",
+    "@pixelforge/shared": "workspace:*"
+  }
+}

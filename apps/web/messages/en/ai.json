@@ -1,0 +1,140 @@
+{
+  "title": "AI studio",
+  "description": "Generate images, cut out backgrounds and write copy. Each run uses credits from your monthly allowance.",
+  "balance": "{balance, plural, one {# credit} other {# credits}} left",
+  "refill": "Tops up to {allowance} on {date}",
+  "demoMode": "Demo mode: AI runs on a local mock provider, so results are placeholders, not real AI output.",
+  "unconfigured": "AI isn't configured on this server yet. Ask the admin to set GEMINI_API_KEY.",
+  "cost": "{count, plural, one {# credit} other {# credits}}",
+  "costPer": "{count, plural, one {# credit} other {# credits}} per image",
+  "open": "Open",
+  "back": "AI studio",
+  "tools": {
+    "text_to_image": {
+      "name": "Image generator",
+      "desc": "Describe a picture and get up to four variations.",
+      "title": "Generate an image"
+    },
+    "bg_remove": {
+      "name": "Background remover",
+      "desc": "Cut the subject out of any photo, ready for a new backdrop.",
+      "title": "Remove a background"
+    },
+    "write": {
+      "name": "AI writer",
+      "desc": "Captions, hashtags and ad copy for your next post.",
+      "title": "Write copy"
+    }
+  },
+  "generate": {
+    "prompt": "Prompt",
+    "promptPlaceholder": "A ceramic mug on a sunlit kitchen table, soft morning light",
+    "style": "Style",
+    "styles": {
+      "none": "No style",
+      "photo": "Photo",
+      "illustration": "Illustration",
+      "3d": "3D",
+      "anime": "Anime",
+      "watercolor": "Watercolor",
+      "neon": "Neon"
+    },
+    "ratio": "Aspect ratio",
+    "variations": "Variations",
+    "advanced": "More options",
+    "negative": "Leave out",
+    "negativeHint": "Things you don't want in the image, e.g. text, watermark.",
+    "submit": "Generate",
+    "emptyTitle": "Your images appear here",
+    "emptyBody": "Write a prompt on the left, pick a style and generate."
+  },
+  "removeBg": {
+    "pick": "Image",
+    "pickHint": "Choose one of your uploads, or add a new photo.",
+    "noUploads": "No uploads yet. Add a photo to get started.",
+    "uploadNew": "Upload a photo",
+    "submit": "Remove background",
+    "emptyTitle": "Pick a photo to start",
+    "emptyBody": "The cut-out appears here with a before/after slider.",
+    "original": "Original",
+    "result": "Cut-out",
+    "compare": "Compare cut-out and original"
+  },
+  "write": {
+    "kind": "What to write",
+    "kinds": { "caption": "Captions", "hashtags": "Hashtags", "ad_copy": "Ad copy" },
+    "topic": "Topic",
+    "topicPlaceholder": "Launch of our new cold brew, summer vibes, small coffee shop",
+    "tone": "Tone",
+    "tones": { "friendly": "Friendly", "bold": "Bold", "professional": "Professional", "playful": "Playful" },
+    "count": "How many",
+    "submit": "Write",
+    "copy": "Copy",
+    "copied": "Copied to clipboard",
+    "emptyTitle": "Your copy appears here",
+    "emptyBody": "Tell us the topic and tone, and we'll draft a few options."
+  },
+  "status": {
+    "queued": "Queued",
+    "running": "Generating",
+    "succeeded": "Done",
+    "failed": "Failed",
+    "blocked": "Blocked",
+    "elapsed": "{seconds}s",
+    "working": "Working on it. This usually takes a few seconds."
+  },
+  "result": {
+    "download": "Download",
+    "save": "Save to library",
+    "saved": "Saved to your uploads",
+    "savedShort": "Saved",
+    "failedTitle": "That didn't work",
+    "refunded": "{count, plural, one {# credit was} other {# credits were}} refunded.",
+    "tryAgain": "Try again",
+    "variation": "Variation {n}"
+  },
+  "errors": {
+    "blocked": "This prompt isn't allowed by our content policy. Nothing was charged.",
+    "generic": "Couldn't start the job. Nothing was charged. Try again in a moment.",
+    "downloadFailed": "Download failed. Try again."
+  },
+  "paywall": {
+    "title": "Not enough credits",
+    "body": "This run costs {cost} and you have {balance}. Your credits top up to {allowance} on {date}.",
+    "soon": "Paid plans with more credits are coming soon."
+  },
+  "history": {
+    "title": "History",
+    "empty": "Runs you start show up here.",
+    "favorites": "Favorites only",
+    "all": "All",
+    "favorite": "Add to favorites",
+    "unfavorite": "Remove from favorites",
+    "reuse": "Reuse",
+    "loadMore": "Load more",
+    "loadError": "Couldn't load history."
+  },
+  "usage": {
+    "title": "Credit usage",
+    "description": "Every credit added or spent, newest first.",
+    "link": "Credit usage",
+    "empty": "No credit activity yet.",
+    "loadMore": "Load more",
+    "loadError": "Couldn't load your credit history.",
+    "reasons": {
+      "monthly_grant": "Monthly top-up",
+      "admin_grant": "Granted by admin",
+      "job_charge": "Spent: {tool}",
+      "job_refund": "Refunded: {tool}",
+      "purchase": "Purchase"
+    },
+    "colDate": "Date",
+    "colWhat": "Activity",
+    "colAmount": "Credits"
+  },
+  "home": {
+    "title": "Try AI",
+    "body": "Generate an image, remove a background or draft a caption.",
+    "cta": "Open AI studio"
+  }
+}

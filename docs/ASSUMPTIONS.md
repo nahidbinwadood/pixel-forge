@@ -59,3 +59,14 @@ Answers from the kickoff (2026-10-07) plus defaults chosen where the brief left 
 | D-A1-2 | Autosave: PATCH `{document, revision}` 2 s after the last edit. A stale revision returns 409, and the client saves its version as a **copy** instead of overwriting. Unsaved edits are mirrored to IndexedDB for crash recovery | Never lose work, never clobber another tab |
 | D-A1-3 | Thumbnails: the client renders page 1 (≤ 480 px WebP) and PUTs it to `/api/v1/projects/:id/thumbnail`. The server stores it in S3 (≤ 512 KB, PNG/WebP/JPEG only) | Simplest correct option, no data URLs in the DB |
 | D-A1-4 | Free-plan users can preview premium filters in the editor, but export is blocked with the paywall message (US4.3) | Users see the value before the paywall |
+## AI layer decisions (agent A2, Phase 4)
+| # | Decision | Why |
+|---|---|---|
+| A2-1 | ⚠ **Gemini is the only real provider** (`AI_PROVIDER=mock\|gemini`), replacing D12's Replicate/Anthropic adapters. Defaults `gemini-3.8-flash` (text, moderation) and `gemini-3.1-flash-image` (images), overridable via `GEMINI_TEXT_MODEL` / `GEMINI_IMAGE_MODEL` | The user supplies only a Gemini key. `gemini` without a key is a config error (the UI says "not configured"), never a silent fallback to mock |
+| A2-2 | Background removal = Gemini image edit to "subject on pure white", then the worker flood-fills white connected to the border to transparent (feathered edge) | Gemini has no segmentation model. Border flood-fill keeps white inside the subject. Ceiling: white subjects touching the frame edge; a matting model is a V2 swap behind `editImage` (B-19) |
+| A2-3 | Moderation: prompts are checked in the web tier before any charge (Gemini JSON classifier + Gemini's own safety blocks); outputs are checked in the worker before storing. Blocked outputs end `blocked` and are refunded | PRD US10.1. A blocked prompt creates no job and charges nothing (422) |
+| A2-4 | Idempotency keys are stored as `<userId>:<key>` | One user's key can never replay another user's job |
+| A2-5 | "Save to library" moves an `ai_output` asset to `kind=upload` (tag `ai`, provenance kept in `license`) instead of copying it | No duplicate storage; Uploads and the editor see it like any upload |
+| A2-6 | The monthly top-up writes a ledger row even when the delta is 0 (dedupe `grant:YYYY-MM:user`, the same key as the signup grant) | Marks the month as done so a later run can't top up again after spending. Zero rows are hidden in usage history |
+| A2-7 | Text-to-image `seed` (PRD US10.1) is not offered | The Gemini image API exposes no seed (B-17) |
+| A2-8 | Job progress is honest: real status (queued/running) + elapsed time with an indeterminate bar, no invented percentages | Providers report no progress |
