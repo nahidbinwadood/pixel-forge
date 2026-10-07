@@ -15,7 +15,7 @@
 | A1 | Phase 2 core editor | ✅ Merged to main. Lint, typecheck, 55 unit tests, build and `e2e/editor.spec.ts` passed on the branch |
 | A2 | Phase 4 AI on Gemini + crons | ✅ Merged. Mock provider verified. **The real Gemini path has never run: there is no key** |
 | A4 | Email (SMTP), optional Stripe, `/pricing`, legal/SEO pages, CSP/headers | ✅ Merged. Low-credit email is wired into AI charges at the merge (B-21). **SMTP is untested live** |
-| A3 | Phase 3 templates + libraries | ⏸ WIP, 5 commits on branch `worktree-agent-a8c93542c7bd0b08f`. Last commit is an unchecked `wip:`. It was mid-way through debugging a build error |
+| A3 | Phase 3 templates + libraries | ✅ Merged. Lint, typecheck, unit tests, build and `e2e/templates.spec.ts` (3/3, 2 runs) pass. Migration `a3_templates` (full-text search). Stock photos need `UNSPLASH_ACCESS_KEY`, otherwise 503 (honest) |
 | A5 | Phases 8 + 9 community + teams | ⏸ WIP, 2 commits on branch `worktree-agent-a30b258b35dae3611`. Last commit is an unchecked `wip:`. It was mid-way through the UI (post-card) |
 
 Merged main (after the Vercel change): lint ✓, typecheck ✓, unit 94/94 ✓, `pnpm build` ✓, migration ✓, E2E 19/19 ✓.
