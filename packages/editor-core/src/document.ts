@@ -61,8 +61,14 @@ export const ImageNode = z.object({
   ...base,
   type: z.literal("image"),
   assetId: id,
+  /** Visible part of the source as fractions (0–1) of its width/height, so it is independent of the variant loaded. */
   crop: z
-    .object({ x: z.number(), y: z.number(), width: z.number().positive(), height: z.number().positive() })
+    .object({
+      x: z.number().min(0).max(1),
+      y: z.number().min(0).max(1),
+      width: z.number().positive().max(1),
+      height: z.number().positive().max(1),
+    })
     .optional(),
   adjustments: Adjustments.default({}),
   filter: z.object({ presetId: id, intensity: z.number().min(0).max(1) }).optional(),
@@ -114,3 +120,26 @@ export const EditorDocument = z.object({
 export type EditorDocument = z.infer<typeof EditorDocument>;
 export type Page = z.infer<typeof Page>;
 export type Node = z.infer<typeof Node>;
+export type NodeType = Node["type"];
+export type Fill = z.infer<typeof Fill>;
+export type Adjustments = z.infer<typeof Adjustments>;
+export type ImageNode = z.infer<typeof ImageNode>;
+export type TextNode = z.infer<typeof TextNode>;
+export type ShapeNode = z.infer<typeof ShapeNode>;
+export type StickerNode = z.infer<typeof StickerNode>;
+export type GroupNode = z.infer<typeof GroupNode>;
+export type Background = Page["background"];
+
+/** Node fields the caller must supply; everything with a schema default is optional. */
+export type NodeInput = z.input<typeof Node>;
+
+/** Parse a node, filling schema defaults. Throws on invalid input. */
+export const parseNode = (input: NodeInput): Node => Node.parse(input);
+
+/** A blank one-page document. */
+export function createDocument(width: number, height: number, background: Fill = { type: "solid", color: "#ffffff" }) {
+  return EditorDocument.parse({
+    schemaVersion: CURRENT_SCHEMA_VERSION,
+    pages: [{ id: "page-1", width, height, background, nodes: [] }],
+  });
+}
