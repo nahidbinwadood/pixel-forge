@@ -6,7 +6,16 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!**/generated", "!**/next-env.d.ts", "!docs", "!**/*.md", "!test-results", "!playwright-report"]
+    "includes": [
+      "**",
+      "!**/generated",
+      "!**/next-env.d.ts",
+      "!docs",
+      "!**/*.md",
+      "!test-results",
+      "!playwright-report",
+      "!.claude"
+    ]
   },
   "formatter": {
     "enabled": true,

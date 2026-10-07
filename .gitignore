@@ -12,3 +12,6 @@ packages/db/generated
 test-results
 playwright-report
 .playwright-mcp
+
+# Claude Code local state (agent worktrees, locks)
+.claude/

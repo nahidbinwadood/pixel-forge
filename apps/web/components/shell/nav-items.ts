@@ -1,4 +1,12 @@
-import { HomeIcon, ImagesIcon, LayoutGridIcon, type LucideIcon, SettingsIcon, ShieldIcon, SparklesIcon } from "lucide-react";
+import {
+  HomeIcon,
+  ImagesIcon,
+  LayoutGridIcon,
+  type LucideIcon,
+  SettingsIcon,
+  ShieldIcon,
+  SparklesIcon,
+} from "lucide-react";
 
 export interface NavItem {
   href: string;
