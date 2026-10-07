@@ -1,6 +1,7 @@
 {
   "title": "Admin",
   "users": "Users",
+  "templates": "Templates",
   "flags": "Feature flags",
   "health": "System health",
   "search": "Search by email or name",

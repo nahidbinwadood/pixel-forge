@@ -2,6 +2,7 @@ import {
   HomeIcon,
   ImagesIcon,
   LayoutGridIcon,
+  LayoutTemplateIcon,
   type LucideIcon,
   SettingsIcon,
   ShieldIcon,
@@ -11,14 +12,15 @@ import {
 export interface NavItem {
   href: string;
   /** Key in messages/en/nav.json */
-  label: "home" | "projects" | "uploads" | "ai" | "settings" | "admin";
+  label: "home" | "templates" | "projects" | "uploads" | "ai" | "settings" | "admin";
   icon: LucideIcon;
   adminOnly?: boolean;
 }
 
-/** Only built destinations (AUDIT §5: hide, don't show disabled). Add Templates/AI when they ship. */
+/** Only built destinations (AUDIT §5: hide, don't show disabled). Add AI when it ships. */
 export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/home", label: "home", icon: HomeIcon },
+  { href: "/templates", label: "templates", icon: LayoutTemplateIcon },
   { href: "/projects", label: "projects", icon: LayoutGridIcon },
   { href: "/uploads", label: "uploads", icon: ImagesIcon },
   { href: "/ai", label: "ai", icon: SparklesIcon },

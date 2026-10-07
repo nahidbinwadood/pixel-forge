@@ -15,6 +15,7 @@
     "deploy": "prisma migrate deploy && prisma generate"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1146.0",
     "@pixelforge/editor-core": "workspace:*",
     "@pixelforge/shared": "workspace:*",
     "@prisma/adapter-pg": "^7.10.0",

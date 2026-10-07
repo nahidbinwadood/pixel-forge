@@ -16,6 +16,7 @@ const NAMESPACES = [
   "settings",
   "admin",
   "paywall",
+  "templates",
   "editor",
   "ai",
   "site",

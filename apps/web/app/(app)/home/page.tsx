@@ -2,10 +2,12 @@ import { prisma } from "@pixelforge/db";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { TryAiCard } from "@/components/ai/try-ai-card";
+import { HomeTemplateTeaser } from "@/components/templates/home-template-teaser";
 import { personalWorkspaceId, userPlan } from "@/lib/account";
 import { requireUser } from "@/lib/api";
 import { recentProjects } from "@/lib/projects";
 import { presignGet } from "@/lib/storage";
+import { listTemplates } from "@/lib/templates";
 import { Library, type LibraryItem } from "./library";
 import { QuickActions } from "./quick-actions";
 import { RecentDesigns } from "./recent-designs";
@@ -36,11 +38,12 @@ async function recentUploads(userId: string): Promise<LibraryItem[]> {
 /** Thin page: parallel data, then composition. Only working actions are offered (AUDIT §5). */
 export default async function HomePage() {
   const user = await requireUser();
-  const [t, plan, items, designs] = await Promise.all([
+  const [t, plan, items, designs, templatesPage] = await Promise.all([
     getTranslations("home"),
     userPlan(user.id),
     recentUploads(user.id),
     recentProjects(user.id),
+    listTemplates({ limit: 3 }),
   ]);
   const firstName = user.name.split(" ")[0] ?? "";
 
@@ -55,7 +58,10 @@ export default async function HomePage() {
         <RecentDesigns designs={designs} userId={user.id} className="lg:col-span-7" />
       </section>
 
-      <TryAiCard />
+      <section className="grid gap-4 sm:grid-cols-2">
+        <TryAiCard />
+        <HomeTemplateTeaser templates={templatesPage.items} />
+      </section>
 
       <Library items={items} />
     </div>
