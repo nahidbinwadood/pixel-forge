@@ -27,8 +27,14 @@ The host is an i5-13500T with 16 GB RAM, so running 5 agents at once overloaded 
 4. Wire the cross-agent stubs: A5 moderation → `packages/ai`, A2 low-credit email → A4 helper, A3 "Use template" → editor.
 5. Update PROGRESS.md, then stop for approval.
 
-## Wave 2 (after wave 1 merges)
-Phase 6 (V2 editing + AI expansion) and Phase 7 (video). Briefs are written after the merge, against the real code.
+## Wave 2 (after A3 + A5 merge; 2 agents at a time)
+| Agent | Brief | Scope | Model |
+|---|---|---|---|
+| A6 | [A6-editor-v2.md](A6-editor-v2.md) | Phase 6a: layers/masks/blend, curves/HSL, brush, selection, multi-page, magic resize, versions, QR | opus |
+| A7 | [A7-video.md](A7-video.md) | Phase 7: browser-only video editor + Gemini captions | opus |
+| A8 | [A8-ai-business.md](A8-ai-business.md) | Phase 6b AI tools + Phase 10 brand kit, product photos, public API, analytics | sonnet |
+
+Order: A3 + A5 (resume) → A6 + A7 → A8 → final hardening + merge (main session). All agents target Vercel (RULES.md).
 
 ## Sessions
 Peer Claude sessions (see `ListAgents`) can take review or verification tasks over `SendMessage`. Build work runs in worktree subagents so that branches stay isolated.
