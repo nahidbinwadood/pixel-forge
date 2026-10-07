@@ -9,3 +9,5 @@ coverage
 .DS_Store
 *.original.md
 packages/db/generated
+test-results
+playwright-report

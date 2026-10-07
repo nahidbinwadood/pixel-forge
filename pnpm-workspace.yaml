@@ -7,3 +7,7 @@ allowBuilds:
   "@prisma/engines": true
   esbuild: true
   workerd: false
+  msgpackr-extract: true
+  sharp: true
+  "@swc/core": false
+  "@parcel/watcher": false

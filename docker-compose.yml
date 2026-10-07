@@ -17,22 +17,26 @@ services:
     image: redis:7-alpine
     ports: ["6379:6379"]
 
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: pixelforge
-      MINIO_ROOT_PASSWORD: pixelforge-secret
-    ports: ["9000:9000", "9001:9001"]
-    volumes: [miniodata:/data]
+  # S3-compatible storage. MinIO no longer publishes public images; SeaweedFS (Apache-2.0) replaces it.
+  # No identities configured = auth disabled, which is fine for local dev only.
+  s3:
+    image: chrislusf/seaweedfs:latest
+    command: server -dir=/data -s3 -s3.port=8333 -ip=s3 -ip.bind=0.0.0.0
+    ports: ["8333:8333"]
+    volumes: [s3data:/data]
 
-  minio-init:
-    image: minio/mc:latest
-    depends_on: [minio]
-    entrypoint: >
-      /bin/sh -c "until mc alias set local http://minio:9000 pixelforge pixelforge-secret; do sleep 1; done;
-      mc mb -p local/pixelforge-uploads local/pixelforge-public; mc anonymous set download local/pixelforge-public"
+  s3-init:
+    image: chrislusf/seaweedfs:latest
+    depends_on: [s3]
+    restart: on-failure
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        sleep 5
+        echo "s3.bucket.create -name pixelforge-uploads" | weed shell -master=s3:9333
+        echo "s3.bucket.create -name pixelforge-public" | weed shell -master=s3:9333
 
 volumes:
   pgdata:
-  miniodata:
+  s3data:

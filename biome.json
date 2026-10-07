@@ -1,7 +1,9 @@
 {
   "$schema": "https://biomejs.dev/schemas/2.5.15/schema.json",
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
-  "files": { "includes": ["**", "!**/generated", "!**/next-env.d.ts", "!docs", "!**/*.md"] },
+  "files": {
+    "includes": ["**", "!**/generated", "!**/next-env.d.ts", "!docs", "!**/*.md", "!test-results", "!playwright-report"]
+  },
   "formatter": { "enabled": true, "indentStyle": "space", "indentWidth": 2, "lineWidth": 120 },
   "linter": {
     "enabled": true,
