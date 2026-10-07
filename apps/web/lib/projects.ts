@@ -1,6 +1,13 @@
 import "server-only";
 import { type Prisma, prisma } from "@pixelforge/db";
-import { CURRENT_SCHEMA_VERSION, createDocument, type EditorDocument, getPage, migrate } from "@pixelforge/editor-core";
+import {
+  CURRENT_SCHEMA_VERSION,
+  createDocument,
+  type EditorDocument,
+  getPage,
+  migrate,
+  usedAssetIds,
+} from "@pixelforge/editor-core";
 import { personalWorkspaceId } from "./account";
 import { ApiError, notFound } from "./api";
 import type { CreateProjectInput } from "./projects-schema";
@@ -81,7 +88,8 @@ export async function listProjects(userId: string, opts: { q?: string; cursor?: 
 
 export async function createProject(userId: string, input: CreateProjectInput) {
   const workspaceId = await personalWorkspaceId(userId);
-  const document = input.document === undefined ? createDocument(input.width, input.height) : validDocument(input.document);
+  const document =
+    input.document === undefined ? createDocument(input.width, input.height) : validDocument(input.document);
   const first = getPage(document);
   return prisma.project.create({
     data: {
@@ -217,4 +225,18 @@ export async function recentProjects(userId: string, take = 6) {
     select: cardSelect,
   });
   return Promise.all(rows.map(toCard));
+}
+
+/** Everything the editor page needs, or null when the design doesn't exist for this user (→ 404). */
+export async function openProject(userId: string, id: string) {
+  const project = await prisma.project.findFirst({
+    where: { id, ...memberOf(userId), deletedAt: null },
+    select: { id: true, name: true, revision: true, document: true },
+  });
+  if (!project) return null;
+  const document = migrate(project.document);
+  return {
+    project: { id: project.id, name: project.name, revision: project.revision, document },
+    assetUrls: await assetUrls(userId, usedAssetIds(document)),
+  };
 }
