@@ -11,3 +11,5 @@ allowBuilds:
   sharp: true
   "@swc/core": false
   "@parcel/watcher": false
+  "@google/genai": false
+  protobufjs: false
