@@ -45,6 +45,11 @@ export async function objectSize(key: string): Promise<number | null> {
   }
 }
 
+/** Server-side write of a small object (e.g. design thumbnails). Large user files go through presignPut. */
+export async function putObject(key: string, body: Uint8Array, contentType: string) {
+  await s3.send(new PutObjectCommand({ Bucket, Key: key, Body: body, ContentType: contentType }));
+}
+
 export async function deleteObjects(keys: string[]) {
   if (keys.length === 0) return;
   await s3.send(new DeleteObjectsCommand({ Bucket, Delete: { Objects: keys.map((Key) => ({ Key })) } }));
