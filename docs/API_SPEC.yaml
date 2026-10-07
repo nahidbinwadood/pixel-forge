@@ -95,20 +95,21 @@ paths:
         "400": { $ref: "#/components/responses/ValidationFailed" }
         "401": { $ref: "#/components/responses/Unauthenticated" }
   /me/export:
-    post:
+    get:
       tags: [Me]
-      summary: Request a data export (GDPR portability)
-      description: Queues a job that zips profile, projects (JSON) and originals, then emails a signed download link valid for 7 days. Limited to 1 request per 24 h.
+      summary: Download a data export (GDPR portability)
+      description: |
+        Implemented (Phase 1) as a synchronous JSON download: profile, workspaces with project documents,
+        upload metadata, credit ledger and AI job history. Limited to 5 per hour. Originals are not included.
+        Planned: a queued job that zips originals and emails a link (BACKLOG B-12, ASSUMPTIONS D25).
       operationId: exportMe
       responses:
-        "202":
-          description: Export queued
+        "200":
+          description: JSON file (Content-Disposition attachment)
           content:
             application/json:
-              schema:
-                type: object
-                properties:
-                  jobId: { type: string }
+              schema: { type: object }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
         "429": { $ref: "#/components/responses/RateLimited" }
 
   # ---------------------------------------------------------------- Projects
@@ -816,6 +817,8 @@ paths:
                 additionalProperties: { type: boolean }
 
   # ---------------------------------------------------------------- Admin
+  # Admin endpoints below are specified for the future public API (Phase 10). In the MVP the admin UI
+  # uses Next.js server actions (apps/web/lib/admin.ts) instead (ASSUMPTIONS D26).
   /admin/users:
     get:
       tags: [Admin]

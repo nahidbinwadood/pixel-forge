@@ -31,7 +31,7 @@ erDiagram
   User ||--o{ AuditLog : acts
 ```
 
-`Font`, `FeatureFlag` and `Verification` are standalone tables.
+`Font`, `FeatureFlag`, `Verification` and `RateLimit` (Better Auth rate-limit buckets) are standalone tables.
 
 ## Key decisions
 

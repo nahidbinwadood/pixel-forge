@@ -13,10 +13,12 @@ Product brief: @PROJECT_BRIEF.md · Decisions: @docs/ASSUMPTIONS.md · Status: @
 | | |
 |---|---|
 | `pnpm install` | install (Node ≥22, pnpm 11) |
-| `pnpm db:up` | Postgres :5432, Redis :6379, MinIO :9000 (console :9001) |
-| `pnpm db:migrate` / `pnpm db:seed` | Prisma migrate dev / idempotent seed |
+| `pnpm db:up` | Postgres :5432, Redis :6379, SeaweedFS S3 :8333 (buckets auto-created) |
+| `pnpm db:migrate` / `pnpm db:seed` | Prisma migrate dev + generate / idempotent seed |
+| `pnpm db:deploy` | apply migrations non-interactively (CI/prod) |
 | `pnpm --filter @pixelforge/db generate` | regenerate the Prisma client after schema edits |
-| `pnpm dev` | all apps (web → http://localhost:3000) |
+| `pnpm dev` | web (http://localhost:3000) + worker |
+| `pnpm test:e2e` | Playwright; needs `pnpm db:up`; starts web + worker itself |
 | `pnpm check` | biome lint + typecheck (all packages) + vitest |
 | `pnpm format` | biome autofix |
 | `pnpm build` | production build |
@@ -24,7 +26,7 @@ Product brief: @PROJECT_BRIEF.md · Decisions: @docs/ASSUMPTIONS.md · Status: @
 ## Folder map
 ```
 apps/web            Next.js: UI + /api/v1 route handlers + Better Auth
-apps/worker         BullMQ worker (Phase 1+)
+apps/worker         BullMQ worker: upload validation (magic bytes), re-encode, thumbnails
 packages/db         Prisma schema/client/seed (client generated to packages/db/generated)
 packages/shared     APP_NAME, plans/credits config, shared zod schemas
 packages/editor-core  document model + migrate(); pure TS, no DOM, ≥90% test coverage
@@ -44,3 +46,9 @@ docs/               PRD, architecture, API spec, roadmap, risks, security, tests
 
 ## Definition of done
 Acceptance criteria are demoable · `pnpm check` and `pnpm build` are green · tests cover new logic · keyboard and screen-reader basics work · responsive · loading, empty, error and paywall states are handled · analytics event added (PRD event names) · PROGRESS.md updated · migration and seed updated · no secrets, no dead code, no unlinked TODOs.
+
+## Gotchas (learned the hard way)
+- Never set `NODE_ENV` in `.env`; it breaks `next build`.
+- After editing `schema.prisma`, run `pnpm db:migrate` (it also regenerates). A stale client makes Better Auth fail with "schema mismatch".
+- On Windows, stopping a backgrounded `pnpm dev` can leave `next` alive on :3000, and Playwright then reuses the stale server. Kill it.
+- The S3 client must keep `requestChecksumCalculation: "WHEN_REQUIRED"`, or browser uploads fail with `BadDigest`.

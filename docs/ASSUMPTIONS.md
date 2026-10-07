@@ -31,6 +31,16 @@ Answers from the kickoff (2026-10-07) plus defaults chosen where the brief left 
 | D16 | Email: Resend + React Email. Errors: Sentry. i18n: `next-intl` (EN only, RTL-ready). Theme: CSS variables + `class` strategy | — |
 | D17 | Brand: **PixelForge**, set by one constant `APP_NAME` in `packages/shared`. Palette is an "ember" orange accent on neutral ink, deliberately unlike Picsart's purple/pink | — |
 | D18 | Tests: Vitest (unit, all packages) now. Playwright added in Phase 1 when the first UI exists | — |
+| D19 | ⚠ Local S3 is **SeaweedFS**, not MinIO | MinIO stopped publishing public Docker images (pull fails). SeaweedFS is Apache-2.0 and S3-compatible. Prod stays R2 |
+| D20 | S3 client uses `requestChecksumCalculation: "WHEN_REQUIRED"` | Newer AWS SDK v3 bakes an empty-body checksum into presigned URLs, so browser PUTs fail with `BadDigest` on SeaweedFS and R2 |
+| D21 | One `.env` at repo root. Next scripts run through `dotenv-cli`, the worker through `tsx --env-file` | Next only reads `apps/web/.env*` and resets env in its workers. Never put `NODE_ENV` in `.env` (breaks `next build`) |
+| D22 | ⚠ `next-intl` without its Next plugin: the one alias it adds is set by hand in `next.config.ts` | The plugin loads `@swc/core`'s native addon, which refuses to run on this machine (unsafe ACL on `%LOCALAPPDATA%\swc`). Locale comes from a cookie, with no `/en/` URL prefix |
+| D23 | Better Auth rate limits stored in Postgres (`RateLimit` table) | Simple at MVP scale. Upgrade path: Redis `secondaryStorage` |
+| D24 | Email verification is sent but not required to use the app | PRD US1.1 lands the user signed in. Revisit before community features, where verified identity matters |
+| D25 | ⚠ GDPR export is a synchronous `GET /api/v1/me/export`, not a job | Accounts are small. Move to a worker job + emailed link when exports include binaries (B-12) |
+| D26 | ⚠ Admin mutations are **server actions** (`lib/admin.ts`), not REST endpoints | Internal UI only. REST admin endpoints stay in API_SPEC for the Phase 10 public API. Admin UI is English-only by design |
+| D27 | "Upload from URL" fetches **in the browser** and reuses the normal upload path | No server-side fetch means no SSRF surface. Sites without CORS fail, and the UI says so |
+| D28 | PWA = manifest + icons, no service worker yet | Chromium installs without one. The SW ships with editor offline mode (PRD US3.5) |
 
 ## Product assumptions
 - English only at launch. Desktop-first editor, and mobile gets browse + light edit only.
