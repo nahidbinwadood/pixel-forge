@@ -1,5 +1,16 @@
 import type { NextConfig } from "next";
 
+// Security headers (SECURITY.md §3). CSP itself is set per-request in middleware.ts (it needs a
+// fresh nonce per request); everything else is static and belongs here.
+const securityHeaders = [
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  { key: "X-Frame-Options", value: "DENY" },
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), payment=()" },
+  // HSTS only matters over HTTPS; browsers ignore it on plain http (local dev), so it's safe to always send.
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+];
+
 const config: NextConfig = {
   // Workspace packages ship TS source, no build step.
   transpilePackages: ["@pixelforge/shared", "@pixelforge/editor-core", "@pixelforge/db", "@pixelforge/ai"],
@@ -12,6 +23,9 @@ const config: NextConfig = {
   // addon at config time, which is fragile on some Windows setups. Use the plugin again if we need its
   // message extraction/precompile features.
   turbopack: { resolveAlias: { "next-intl/config": "./i18n/request.ts" } },
+  async headers() {
+    return [{ source: "/:path*", headers: securityHeaders }];
+  },
 };
 
 export default config;

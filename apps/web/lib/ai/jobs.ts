@@ -3,12 +3,14 @@ import { type AIJob, Prisma, prisma } from "@pixelforge/db";
 import { type AIJobOutput, type CreateAIJobInput, jobCost } from "@pixelforge/shared";
 import { personalWorkspaceId } from "../account";
 import { ApiError, notFound } from "../api";
+import { sendLowCreditsEmail } from "../email";
 import { isEnabled } from "../flags";
 import { rateLimit } from "../redis";
 import { presignGet } from "../storage";
 import { aiProvider, aiQueue, aiStatus } from "./provider";
 
 type SessionUser = { id: string; role?: string | null };
+const LOW_CREDITS = 5;
 
 export const insufficientCredits = (balance: number, cost: number) =>
   new ApiError(402, "INSUFFICIENT_CREDITS", "Not enough credits for this job", { balance, cost });
@@ -56,6 +58,7 @@ export async function createJob(user: SessionUser, idempotencyKey: string, body:
 
   const cost = jobCost(body.tool, body.tool === "text_to_image" ? body.input.variations : 1);
   let job: AIJob;
+  let balanceBefore = 0;
   try {
     job = await prisma.$transaction(async (tx) => {
       // Row lock on the user serializes concurrent charges, so two parallel jobs can't overdraw.
@@ -63,6 +66,7 @@ export async function createJob(user: SessionUser, idempotencyKey: string, body:
       const sum = await tx.creditLedger.aggregate({ where: { userId: user.id }, _sum: { delta: true } });
       const balance = sum._sum.delta ?? 0;
       if (balance < cost) throw insufficientCredits(balance, cost);
+      balanceBefore = balance;
       const created = await tx.aIJob.create({
         data: {
           userId: user.id,
@@ -99,6 +103,8 @@ export async function createJob(user: SessionUser, idempotencyKey: string, body:
     await failAndRefund(job, "Could not queue the job");
     throw new ApiError(503, "QUEUE_UNAVAILABLE", "Couldn't start the job. Your credits were refunded.", String(e));
   }
+  // Email once, when this charge crosses the low-credit line (not on every job below it).
+  if (balanceBefore >= LOW_CREDITS && balanceBefore - cost < LOW_CREDITS) void sendLowCreditsEmail(user.id);
   return { job, replayed: false };
 }
 

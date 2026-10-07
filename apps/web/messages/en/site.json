@@ -1,0 +1,235 @@
+{
+  "cookies": {
+    "bannerLabel": "Cookie notice",
+    "body": "We use essential cookies to run PixelForge. With your OK, we'd also use analytics cookies to see what's working.",
+    "learnMore": "Learn more",
+    "essentialOnly": "Essential only",
+    "accept": "Accept"
+  },
+  "about": {
+    "title": "About PixelForge",
+    "lead": "PixelForge is a browser-based photo and design editor, built by a solo developer during a public beta.",
+    "paragraphs": {
+      "p1": "We're building an all-in-one creative tool — photo editing, graphic design and AI tools — without requiring a design background or a native app install. Everything runs in your browser and autosaves as you go.",
+      "p2": "PixelForge is early. Phases 1 through 4 of the roadmap — the editor, templates, AI background removal, AI image generation and AI writing — are what you'll find today. Billing, video, and community features are on the way; the pricing page is honest about what's live and what's a waitlist.",
+      "p3": "Your content is private by default and never used to train anything. We don't sell data, and we don't use dark patterns to extract a subscription. If something's broken or missing, tell us — contact details are one click away."
+    }
+  },
+  "contact": {
+    "title": "Contact us",
+    "subtitle": "Questions, bug reports, partnership ideas — we read every message.",
+    "form": {
+      "name": "Name",
+      "email": "Email",
+      "message": "Message",
+      "messagePlaceholder": "What's on your mind?",
+      "submit": "Send message",
+      "success": "Thanks — we'll get back to you soon.",
+      "error": "Couldn't send that. Try again, or email us directly below."
+    },
+    "directEmail": "Prefer email? Write to {email} directly."
+  },
+  "legal": {
+    "updated": "Last updated October 2026",
+    "terms": {
+      "title": "Terms of Service",
+      "intro": "These terms cover your use of PixelForge, a beta product. By creating an account or using the service, you agree to them.",
+      "sections": {
+        "accounts": {
+          "title": "Accounts",
+          "body": "You need an account to save work, use AI tools or export without limits. You're responsible for your login credentials and for activity on your account. Tell us right away if you suspect unauthorized access."
+        },
+        "acceptableUse": {
+          "title": "Acceptable use",
+          "body": "Don't use PixelForge to create or distribute illegal content, infringe someone else's intellectual property, harass or impersonate others, or attempt to disrupt, reverse-engineer or overload the service. We can suspend or terminate accounts that violate this."
+        },
+        "yourContent": {
+          "title": "Your content",
+          "body": "You keep ownership of designs, photos and other content you upload or create. By using PixelForge you grant us a limited license to store, process and display that content solely to operate the service for you — we don't license it to third parties or use it to train AI models."
+        },
+        "aiFeatures": {
+          "title": "AI features",
+          "body": "AI tools (background removal, image generation, writing assistance) call third-party model providers and are metered by credits (see our AI Policy and the pricing page). AI output can be inaccurate or unexpected — review it before relying on it, and don't use it to generate content that violates our Acceptable Use rules or the AI Policy."
+        },
+        "paidPlans": {
+          "title": "Paid plans",
+          "body": "Paid plans and credit bundles, when available, are billed through Stripe. Prices are shown before purchase. You can cancel a subscription anytime from Settings; you keep access through the period already paid for. We don't offer pro-rated refunds for partial periods except where law requires it."
+        },
+        "availability": {
+          "title": "Beta availability",
+          "body": "PixelForge is in beta. Features can change, and we may need to pause the service for maintenance. We'll try to give notice for anything that affects your saved content, but we can't guarantee uninterrupted availability during beta."
+        },
+        "termination": {
+          "title": "Termination",
+          "body": "You can delete your account anytime from Settings. We may suspend or terminate accounts that violate these terms, with notice where practical. On deletion, your content is soft-deleted immediately and permanently removed after 30 days (see our Privacy Policy)."
+        },
+        "disclaimer": {
+          "title": "Disclaimer & liability",
+          "body": "PixelForge is provided \"as is\" during beta, without warranties of any kind. To the extent permitted by law, we aren't liable for indirect or consequential damages arising from your use of the service."
+        },
+        "changes": {
+          "title": "Changes to these terms",
+          "body": "We may update these terms as the product evolves. Material changes will be announced in-app or by email before they take effect."
+        }
+      }
+    },
+    "privacy": {
+      "title": "Privacy Policy",
+      "intro": "This explains what we collect, why, and the choices you have. We built PixelForge to need as little of your data as possible.",
+      "sections": {
+        "dataWeCollect": {
+          "title": "Data we collect",
+          "body": "Account info (email, name, hashed password or OAuth identity), the photos and designs you upload or create, usage data (pages visited, features used) and technical data (IP address, browser, device) for security and debugging."
+        },
+        "howWeUseIt": {
+          "title": "How we use it",
+          "body": "To run the editor and your account, process AI requests through our providers, send transactional email (verification, password reset, receipts), keep the service secure, and understand aggregate usage to improve the product. We never sell your data."
+        },
+        "aiProcessing": {
+          "title": "AI processing",
+          "body": "When you use an AI tool, the relevant image or text is sent to our AI provider (currently Google Gemini) to generate a result. Prompts and outputs are also screened by an automated moderation step before being shown to you. See our AI Policy for details."
+        },
+        "sharing": {
+          "title": "Who we share it with",
+          "body": "Only the service providers that run PixelForge: hosting, database, storage, email delivery, payments (Stripe, where enabled) and the AI providers above — each bound by their own data-processing terms. We don't sell or rent personal data to anyone."
+        },
+        "retention": {
+          "title": "Retention",
+          "body": "Your content stays until you delete it. Deleted accounts are soft-deleted immediately (hidden, sessions revoked) and permanently erased after 30 days. Logs are kept 30 days; audit logs (security-relevant admin actions) are kept 2 years."
+        },
+        "yourRights": {
+          "title": "Your rights",
+          "body": "You can export your data anytime from Settings → Data, and delete your account the same way. Depending on where you live, you may have additional rights (access, correction, portability, objection) under GDPR/CCPA — contact us to exercise them."
+        },
+        "cookies": {
+          "title": "Cookies",
+          "body": "We use essential cookies to keep you signed in and remember preferences, and — only with your consent via the cookie banner — analytics cookies to understand usage. See our Cookie Policy for the full list."
+        },
+        "children": {
+          "title": "Children's privacy",
+          "body": "PixelForge isn't directed at children under 13, and we don't knowingly collect their data. Contact us if you believe a child has created an account."
+        }
+      }
+    },
+    "cookies": {
+      "title": "Cookie Policy",
+      "intro": "Cookies are small files a site stores in your browser. Here's what PixelForge uses them for.",
+      "sections": {
+        "essential": {
+          "title": "Essential cookies",
+          "body": "Keep you signed in, protect against cross-site request forgery, and remember your theme and locale. These are always on — the service can't work without them."
+        },
+        "analytics": {
+          "title": "Analytics cookies",
+          "body": "Help us see which features get used, so we can prioritize fixing or improving them. These only load after you click \"Accept\" on the cookie banner, and you can withdraw consent anytime by clearing your browser's site data."
+        },
+        "yourChoices": {
+          "title": "Your choices",
+          "body": "Use the cookie banner on first visit, or your browser's cookie settings at any time, to control non-essential cookies. Blocking essential cookies will break sign-in."
+        },
+        "changes": {
+          "title": "Changes",
+          "body": "If the cookies we use change meaningfully, we'll update this page and, where required, ask for consent again."
+        }
+      }
+    },
+    "dmca": {
+      "title": "DMCA & Copyright Policy",
+      "intro": "We respect intellectual property rights and respond to valid takedown notices under the Digital Millennium Copyright Act and equivalent laws.",
+      "sections": {
+        "policy": {
+          "title": "Our policy",
+          "body": "We don't allow users to upload content that infringes someone else's copyright. We never use or publish Picsart's (or any other company's) code, branding, templates or proprietary assets, and we curate our own stock/template libraries from openly licensed or self-made sources."
+        },
+        "filingNotice": {
+          "title": "Filing a takedown notice",
+          "body": "If you believe content on PixelForge infringes your copyright, email our contact address with: a description of the work, the URL or location of the infringing content, your contact details, a statement of good-faith belief that use is unauthorized, and a statement under penalty of perjury that the notice is accurate and you're authorized to act."
+        },
+        "counterNotice": {
+          "title": "Counter-notice",
+          "body": "If your content was removed and you believe that was a mistake, you can submit a counter-notice with your contact details, identification of the removed content, and a statement under penalty of perjury that you have a good-faith belief it was removed in error."
+        },
+        "repeatInfringers": {
+          "title": "Repeat infringers",
+          "body": "Accounts with repeated, substantiated infringement are terminated."
+        }
+      }
+    },
+    "aiPolicy": {
+      "title": "AI Usage Policy",
+      "intro": "What powers PixelForge's AI tools, what's off-limits, and how we review content.",
+      "sections": {
+        "providers": {
+          "title": "What powers our AI tools",
+          "body": "AI features (background removal, text-to-image generation, writing assistance) call Google's Gemini models through their API. In development and testing we use an offline mock provider that produces no real output."
+        },
+        "acceptableUse": {
+          "title": "Acceptable use",
+          "body": "Use AI tools for legitimate creative work: your own photos, original design ideas, marketing copy, and similar. Review AI output before publishing or relying on it — it can be factually wrong or visually imperfect."
+        },
+        "prohibitedContent": {
+          "title": "Prohibited content",
+          "body": "Never use PixelForge's AI tools to create sexual content involving minors (zero tolerance, reported as legally required), non-consensual likenesses of real people, graphic violence, hateful content, or material intended to deceive or defraud. These rules apply on top of, not instead of, our Terms of Service."
+        },
+        "moderation": {
+          "title": "Moderation",
+          "body": "Prompts are screened before a job runs, and outputs are screened before they're stored or shown. If a request is blocked, you aren't charged credits. Repeated violations lead to a temporary or permanent AI cooldown on the account."
+        },
+        "ownership": {
+          "title": "Ownership of AI output",
+          "body": "Subject to your provider's own terms, you own the rights to images and text you generate with PixelForge's AI tools, to the extent permitted by law in your jurisdiction (AI-authorship law varies by country)."
+        },
+        "limitations": {
+          "title": "Limitations",
+          "body": "AI models can produce biased, inaccurate or low-quality results, especially for unusual prompts. We continue to tune moderation and quality, but we can't guarantee any particular output."
+        }
+      }
+    }
+  },
+  "tools": {
+    "photoEditor": {
+      "title": "Online Photo Editor",
+      "tagline": "Crop, adjust and filter any photo, right in your browser",
+      "description": "Fix brightness, contrast, color and sharpness, crop to any aspect ratio, and layer in text and shapes — with full undo history and autosave. No install, no plugins.",
+      "benefits": {
+        "b1": "Non-destructive adjustments: brightness, contrast, saturation, exposure and more",
+        "b2": "Crop and resize presets for every social format",
+        "b3": "Layers for text, shapes and images with transform handles",
+        "b4": "Autosave and undo/redo history, so you never lose work"
+      }
+    },
+    "backgroundRemover": {
+      "title": "AI Background Remover",
+      "tagline": "Cut out any subject in one click",
+      "description": "Upload a photo and PixelForge's AI isolates the subject automatically, ready to drop onto a new background or a design. Metered by AI credits — every account starts with a free monthly allowance.",
+      "benefits": {
+        "b1": "One-click background removal powered by AI",
+        "b2": "Works straight inside the photo and design editors",
+        "b3": "Free credits every month; no credit card needed to try it"
+      }
+    },
+    "aiImageGenerator": {
+      "title": "AI Image Generator",
+      "tagline": "Describe it, and PixelForge generates it",
+      "description": "Turn a text prompt into an original image, then keep editing it in the full photo editor. Every generation is screened by moderation before it's shown to you.",
+      "benefits": {
+        "b1": "Text-to-image generation from a plain-language prompt",
+        "b2": "Generated images open straight into the editor for further edits",
+        "b3": "Prompt history, so you can revisit or remix earlier ideas"
+      }
+    },
+    "templates": {
+      "title": "Design Templates",
+      "tagline": "Start from a layout instead of a blank canvas",
+      "description": "Browse templates by category and size, then open one in the editor and make it yours — swap photos, text and colors without starting from scratch.",
+      "benefits": {
+        "b1": "Templates organized by category, size and style",
+        "b2": "One click opens a template as an editable design",
+        "b3": "Favorites and recently used, so good finds aren't lost"
+      }
+    },
+    "status": "Live in beta",
+    "cta": "Try it free",
+    "ctaSignedIn": "Open PixelForge"
+  }
+}

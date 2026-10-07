@@ -18,6 +18,8 @@ const NAMESPACES = [
   "paywall",
   "editor",
   "ai",
+  "site",
+  "billing",
 ] as const;
 
 // No locale in the URL: locale comes from a cookie (set from user settings). RTL-ready via `dir` in the root layout.

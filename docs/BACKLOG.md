@@ -27,3 +27,9 @@ Items deferred out of a phase or referenced by a TODO in code. Format: `B-<n> ·
 - B-18 · "Credits low" email when a charge leaves the balance under ~20% of the plan allowance (needs the A4 email helper) · Phase 5
 - B-19 · Refine-mask brush for background removal (PRD US9.2) and a dedicated matting model behind `editImage` · Phase 6
 - B-20 · Purge job skips users whose projects live in a shared team workspace (FK on `Project.creator`); decide reassign-vs-delete when Teams land · Phase 9
+- ~~B-21~~ (done at merge, fires once when a charge crosses 5) · Wire `sendLowCreditsEmail(userId)` (`apps/web/lib/email.ts`) into the AI job charge path · Phase 4 · the email helper exists and is tested; A2's credit-debit code doesn't exist yet in this branch to call it from
+- B-22 · Keep `apps/web/lib/billing/plan-pricing.ts`'s display prices in sync with the real Stripe Price amounts once `STRIPE_PRICE_*` env vars are set for real (or fetch `stripe.prices.retrieve` server-side instead) · Phase 5 rollout
+- B-23 · Swap `apps/web/instrumentation.ts`'s dependency-free envelope POST for the real `@sentry/nextjs` SDK once a Sentry project exists · Phase 11 · avoids the SDK's build-time source-map-upload plugin failing with no auth token configured
+- B-24 · Real SMTP send is untested in this sandbox (no SMTP_HOST/USER/PASS available here) — verify against the real provider once creds are in `.env` · before beta · console-fallback path and all templates are unit-tested
+- B-25 · Dedicated `CONTACT_EMAIL` env var instead of reusing `EMAIL_FROM` as the contact-form inbox (`apps/web/app/(site)/contact/actions.ts`) · when the two addresses need to differ
+- B-26 · Move `apps/web/lib/billing/bundles.ts`'s credit-bundle sizes/prices into `packages/shared/src/plans.ts` if a second consumer (admin UI, API) needs them · when needed
