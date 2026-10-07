@@ -137,13 +137,25 @@ model Verification {
 }
 
 model TwoFactor {
-  id          String @id @default(cuid())
-  userId      String
-  secret      String
-  backupCodes String
-  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                      String    @id @default(cuid())
+  userId                  String
+  secret                  String
+  backupCodes             String
+  verified                Boolean   @default(true)
+  failedVerificationCount Int       @default(0)
+  lockedUntil             DateTime?
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([secret])
+}
+
+/// Better Auth rate-limit buckets. ponytail: Postgres-backed; move to Redis secondaryStorage if auth QPS grows.
+model RateLimit {
+  id          String @id @default(cuid())
+  key         String @unique
+  count       Int
+  lastRequest BigInt
 }
 
 // ---------- Workspaces (personal workspace auto-created at signup; teams UI is Phase 9) ----------
