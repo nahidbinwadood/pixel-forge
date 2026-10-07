@@ -45,6 +45,19 @@ Answers from the kickoff (2026-10-07) plus defaults chosen where the brief left 
 | D31 | Redesign v2 (user feedback + references CherryMockup / cherrypdf / Picsart): Bricolage Grotesque replaces Clash Display; **light default**; pill buttons with solid violet primary (aurora reserved for transformation) | User disliked v1; references are light, airy, tight-grotesque |
 | D28 | PWA = manifest + icons, no service worker yet | Chromium installs without one. The SW ships with editor offline mode (PRD US3.5) |
 
+## Platform & billing decisions (agent A4, Phases 5 + 11)
+| # | Decision | Why |
+|---|---|---|
+| D-A4-1 | ⚠ Email is **SMTP via `nodemailer`**, not Resend/React Email (supersedes D16's email half) | The wave's only supplied creds are SMTP, not a Resend key. Templates are plain-TSX-shaped HTML built as escaped template strings in `emails/layout.ts`, not JSX via `renderToStaticMarkup` — Next's App Router bundler refuses to import `react-dom/server` anywhere in its module graph, even in a server-only lib three hops from a route handler |
+| D-A4-2 | Stripe is fully optional: `stripeEnabled = Boolean(STRIPE_SECRET_KEY)`. Prices are looked up per plan+interval (`STRIPE_PRICE_<PLAN>_<INTERVAL>`) and per credit bundle (`STRIPE_PRICE_CREDITS_<ID>`); a plan/interval with no price configured falls back to the pricing page's waitlist for just that plan, not billing as a whole | Matches the task's framing ("Stripe stays optional and degrades to the waitlist") without an all-or-nothing flag |
+| D-A4-3 | Webhook idempotency via a `WebhookEvent(id)` table keyed on the Stripe event id, inserted before processing | Stripe retries deliveries; a unique-constraint failure on the insert means "already handled" |
+| D-A4-4 | Credit bundle sizes/prices live in `apps/web/lib/billing/bundles.ts`, not `packages/shared/src/plans.ts` | plans.ts is limits + AI job credit costs only (CLAUDE.md); bundles are a billing-only concept with no other consumer yet (see BACKLOG B-22) |
+| D-A4-5 | Pricing-page display prices (`lib/billing/plan-pricing.ts`) are a small local illustrative table, not fetched from the configured Stripe Price objects | Avoids a Stripe API round-trip on every pricing-page render for a beta with no real prices set yet; must be kept in sync by hand once real prices exist (BACKLOG B-18) |
+| D-A4-6 | CSP (with a per-request nonce) lives in `apps/web/proxy.ts` alongside the pre-existing sign-in redirect, not a separate `middleware.ts` | Next.js 16 renamed the convention to `proxy.ts` and errors if both files exist — only found by actually running the app, not from reading the docs |
+| D-A4-7 | Sentry (`instrumentation.ts`) posts directly to the DSN's envelope HTTP endpoint instead of using `@sentry/nextjs` | That SDK's build-time source-map-upload plugin needs its own auth token and would make `pnpm build` fragile with no Sentry project configured; matches this repo's existing raw-fetch-over-SDK pattern (`lib/analytics.ts` → PostHog) |
+| D-A4-8 | `/api/v1/health`'s shallow check (`status: "ok"`) stays public; `?deep=1` requires admin and reports per-dependency status | The shallow form is what Playwright's `webServer.url` and uptime monitors need — it must never require auth. The deep form leaks infra details (bucket name, queue depth) |
+| D-A4-9 | Cookie consent (`app/(site)/_components/cookie-consent.tsx`) mounts once in the root layout, and `lib/analytics.ts`'s `track()` checks `localStorage` consent before calling PostHog | Analytics fires from (auth) and (app) pages too (signup, uploads), not just the public site, so the gate has to be global |
+
 ## Product assumptions
 - English only at launch. Desktop-first editor, and mobile gets browse + light edit only.
 - No mobile apps, no video editor, no community and no teams before the beta (Phases 7–9).
