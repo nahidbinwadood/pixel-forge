@@ -309,10 +309,15 @@ model Template {
   updatedAt      DateTime         @updatedAt
   category       TemplateCategory @relation(fields: [categoryId], references: [id])
   projects       Project[]
-  // Full-text search: generated tsvector column + GIN index added in a raw SQL migration (Phase 3).
+  // ==== A3 templates ====
+  // Full-text search: `Unsupported` so `db push`/migrate manage the column, but Prisma Client can't
+  // write to it directly — lib/templates.ts (re)computes it with `$executeRaw` on create/update
+  // (to_tsvector('english', title || tags || ...)). GIN index for `@@ ILIKE`-free search.
+  searchVector Unsupported("tsvector")?
 
   @@index([categoryId, publishedAt])
   @@index([publishedAt, useCount])
+  @@index([searchVector], type: Gin)
 }
 
 // ---------- Favorites & recents (polymorphic on purpose: small, simple, no FK fan-out) ----------
