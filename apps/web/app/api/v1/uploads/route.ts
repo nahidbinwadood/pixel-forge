@@ -4,7 +4,7 @@ import { storageKeys, UPLOAD_MIME_TYPES } from "@pixelforge/shared";
 import { z } from "zod";
 import { personalWorkspaceId, userPlan } from "@/lib/account";
 import { ApiError, parseJson, requireUser, route } from "@/lib/api";
-import { rateLimit } from "@/lib/redis";
+import { rateLimit } from "@/lib/rate-limit";
 import { presignPut } from "@/lib/storage";
 
 const MB = 1024 * 1024;

@@ -7,7 +7,7 @@ export type Outcome =
 
 /**
  * What to do with a job whose run threw. Blocked content and permanent provider errors end the job now;
- * transient errors retry until the last BullMQ attempt, which then ends the job as failed (and refunds).
+ * transient errors retry until the last attempt, which then ends the job as failed (and refunds).
  */
 export function classifyFailure(err: unknown, attemptsMade: number, maxAttempts: number): Outcome {
   const message = err instanceof Error ? err.message : String(err);

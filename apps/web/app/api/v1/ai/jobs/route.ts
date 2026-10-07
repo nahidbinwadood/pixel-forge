@@ -4,6 +4,9 @@ import { createJob, serializeJob } from "@/lib/ai/jobs";
 import { track } from "@/lib/analytics";
 import { parseJson, requireUser, route } from "@/lib/api";
 
+/** The job itself runs after the response (lib/jobs/run.ts); Vercel Hobby caps this at 300 s. */
+export const maxDuration = 300;
+
 const IdempotencyKey = z.string().trim().min(8).max(128);
 
 /** Start an AI job: 202 with the job. A repeated Idempotency-Key returns the original job with 200. */

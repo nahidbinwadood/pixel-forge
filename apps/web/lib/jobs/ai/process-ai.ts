@@ -16,12 +16,12 @@ import {
   writeInput,
 } from "@pixelforge/shared";
 import sharp from "sharp";
+import { assetKeys, deleteObjects, getObject, putObject } from "../../storage";
 import { keyOutBorderWhite } from "./alpha";
 import { classifyFailure, publicError } from "./outcome";
-import { assetKeys, deleteKeys, getObject, putObject } from "./storage";
 
-/** Per provider call; BullMQ retries on top of this (ARCHITECTURE §3). */
-const CALL_TIMEOUT_MS = 90_000;
+/** Per provider call; the runner retries on top of this. Sized so a run fits the route's 300 s maxDuration. */
+const CALL_TIMEOUT_MS = 60_000;
 /** Longest edge sent to the image model for editing. */
 const EDIT_INPUT_PX = 1536;
 
@@ -78,19 +78,27 @@ async function storeImage(ctx: RunContext, png: Buffer, extraLicense: Record<str
 
 async function runTextToImage(ctx: RunContext): Promise<AIJobOutput> {
   const input = textToImageInput.parse(ctx.job.input);
+  // Variations run in parallel so N images take one call's time. allSettled (not all) so no variation is still
+  // writing assets when cleanup runs after a failure.
+  const results = await Promise.allSettled(
+    Array.from({ length: input.variations }, async (_, variant) => {
+      const img = await ctx.provider.generateImage({
+        prompt: input.prompt,
+        style: input.style,
+        aspectRatio: input.aspectRatio,
+        negativePrompt: input.negativePrompt,
+        variant,
+        signal: AbortSignal.timeout(CALL_TIMEOUT_MS),
+      });
+      await blockUnlessSafe(ctx.provider, img);
+      const png = await sharp(img.data).png().toBuffer();
+      return storeImage(ctx, png, { filename: `ai-${ctx.job.id.slice(-6)}-${variant + 1}.png` });
+    }),
+  );
   const assetIds: string[] = [];
-  for (let variant = 0; variant < input.variations; variant++) {
-    const img = await ctx.provider.generateImage({
-      prompt: input.prompt,
-      style: input.style,
-      aspectRatio: input.aspectRatio,
-      negativePrompt: input.negativePrompt,
-      variant,
-      signal: AbortSignal.timeout(CALL_TIMEOUT_MS),
-    });
-    await blockUnlessSafe(ctx.provider, img);
-    const png = await sharp(img.data).png().toBuffer();
-    assetIds.push(await storeImage(ctx, png, { filename: `ai-${ctx.job.id.slice(-6)}-${variant + 1}.png` }));
+  for (const r of results) {
+    if (r.status === "rejected") throw r.reason;
+    assetIds.push(r.value);
   }
   return { assetIds };
 }
@@ -165,7 +173,7 @@ async function finalizeWithRefund(job: AIJob, status: "failed" | "blocked", erro
 
 /**
  * Runs one AI job (ARCHITECTURE §3). Idempotent: a job that already finished is skipped, and assets from a
- * failed attempt are removed before the retry. Throws only when BullMQ should retry.
+ * failed attempt are removed before the retry. Throws only when the runner should retry.
  */
 export async function processAIJob(
   jobId: string,
@@ -210,5 +218,5 @@ export async function processAIJob(
 async function cleanup(ctx: RunContext) {
   if (ctx.created.length === 0) return;
   await prisma.asset.deleteMany({ where: { id: { in: ctx.created.map((a) => a.id) } } }).catch(() => {});
-  await deleteKeys(ctx.created.flatMap(assetKeys)).catch(() => {});
+  await deleteObjects(ctx.created.flatMap(assetKeys)).catch(() => {});
 }

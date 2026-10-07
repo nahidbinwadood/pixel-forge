@@ -1,7 +1,7 @@
 import { parseJson, requireUser, route } from "@/lib/api";
 import { createVersion, listVersions } from "@/lib/projects";
 import { CreateVersion } from "@/lib/projects-schema";
-import { rateLimit } from "@/lib/redis";
+import { rateLimit } from "@/lib/rate-limit";
 
 type Params = { id: string };
 

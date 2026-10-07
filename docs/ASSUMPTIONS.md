@@ -83,3 +83,14 @@ Answers from the kickoff (2026-10-07) plus defaults chosen where the brief left 
 | A2-6 | The monthly top-up writes a ledger row even when the delta is 0 (dedupe `grant:YYYY-MM:user`, the same key as the signup grant) | Marks the month as done so a later run can't top up again after spending. Zero rows are hidden in usage history |
 | A2-7 | Text-to-image `seed` (PRD US10.1) is not offered | The Gemini image API exposes no seed (B-17) |
 | A2-8 | Job progress is honest: real status (queued/running) + elapsed time with an indeterminate bar, no invented percentages | Providers report no progress |
+
+## Vercel deployment (2026-10-07, user decision)
+| # | Decision | Why |
+|---|---|---|
+| D-V1 | ⚠ **Deploy target is Vercel only.** `apps/worker`, BullMQ and Redis are removed (supersedes D2, D11's worker half, D23's Redis upgrade path). Uploads and AI jobs run after the response via `after()` in the same function (`lib/jobs/run.ts`) with in-process retries | Vercel can't host a long-lived worker. One deployable, no extra services |
+| D-V2 | A job that outlives its function (`maxDuration` 300 s) is failed and refunded, lazily on the next poll (`getOwnJob`) or by the daily `cleanup` cron. Stuck uploads are retried by the same cron | No queue re-delivers lost work; this keeps credits honest. Upgrade: Vercel Queues / Inngest |
+| D-V3 | Crons = Vercel Cron → `GET /api/cron/[job]` guarded by `CRON_SECRET` (timing-safe). `cleanup-pending-assets` went from hourly to daily | Hobby allows at most one run per day per cron. Pending TTL is 24 h, so daily is enough |
+| D-V4 | App rate limits move from Redis to Postgres: atomic upsert into the existing `RateLimit` table, with keys prefixed `rl:` and pruned daily | No Redis to provision. Ceiling: one DB write per limited call; switch to Upstash if it shows in DB load |
+| D-V5 | Text-to-image variations run in parallel (`allSettled`); per-call timeout 60 s | Sequential variations could exceed 300 s |
+| D-V6 | Production builds run `prisma migrate deploy` (on `DATABASE_URL_UNPOOLED`); preview builds don't | A preview branch must never migrate the prod schema |
+| D-V7 | Storage stays S3-API (Cloudflare R2 in prod), not Vercel Blob. CSP now allows both `S3_ENDPOINT` and `PUBLIC_ASSET_BASE_URL` origins | No rewrite of the presigned-upload flow; R2 has no egress fees |

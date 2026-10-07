@@ -1,7 +1,7 @@
 import { parseJson, requireUser, route } from "@/lib/api";
 import { createProject, listProjects } from "@/lib/projects";
 import { CreateProject, ListProjectsQuery } from "@/lib/projects-schema";
-import { rateLimit } from "@/lib/redis";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const GET = route(async (req) => {
   const user = await requireUser();

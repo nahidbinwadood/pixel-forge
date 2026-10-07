@@ -13,10 +13,6 @@ services:
       interval: 5s
       retries: 10
 
-  redis:
-    image: redis:7-alpine
-    ports: ["6379:6379"]
-
   # S3-compatible storage. MinIO no longer publishes public images; SeaweedFS (Apache-2.0) replaces it.
   # No identities configured = auth disabled, which is fine for local dev only.
   s3:

@@ -1,5 +1,5 @@
 import { prisma } from "@pixelforge/db";
-import { assetKeys, deleteKeys } from "../ai/storage";
+import { assetKeys, deleteObjects } from "../../storage";
 
 export const PURGE_AFTER_DAYS = 30;
 
@@ -35,7 +35,7 @@ export const prismaPurgeStore: PurgeStore = {
       prisma.user.delete({ where: { id: userId } }),
     ]);
   },
-  deleteKeys,
+  deleteKeys: deleteObjects,
 };
 
 /**

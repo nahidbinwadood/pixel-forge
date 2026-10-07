@@ -1,7 +1,7 @@
 import { ApiError, requireUser, route } from "@/lib/api";
 import { setThumbnail } from "@/lib/projects";
 import { THUMBNAIL_MAX_BYTES, THUMBNAIL_TYPES } from "@/lib/projects-schema";
-import { rateLimit } from "@/lib/redis";
+import { rateLimit } from "@/lib/rate-limit";
 
 const MAGIC: Record<(typeof THUMBNAIL_TYPES)[number], (b: Uint8Array) => boolean> = {
   "image/png": (b) => b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47,

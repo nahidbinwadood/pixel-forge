@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-// Security headers (SECURITY.md §3). CSP itself is set per-request in middleware.ts (it needs a
+// Security headers (SECURITY.md §3). CSP itself is set per-request in proxy.ts (it needs a
 // fresh nonce per request); everything else is static and belongs here.
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -16,7 +16,8 @@ const config: NextConfig = {
   transpilePackages: ["@pixelforge/shared", "@pixelforge/editor-core", "@pixelforge/db", "@pixelforge/ai"],
   // Typecheck runs as its own step (`pnpm typecheck`) in CI.
   typescript: { ignoreBuildErrors: true },
-  serverExternalPackages: ["bullmq", "ioredis", "@google/genai"],
+  // Native/wasm deps used by background jobs (lib/jobs) stay out of the bundle.
+  serverExternalPackages: ["sharp", "heic-convert", "@google/genai"],
   devIndicators: false,
   images: { remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }] },
   // ponytail: this alias is all `next-intl/plugin` does for us. The plugin itself loads @swc/core's native

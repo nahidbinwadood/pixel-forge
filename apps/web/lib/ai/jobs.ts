@@ -5,9 +5,10 @@ import { personalWorkspaceId } from "../account";
 import { ApiError, notFound } from "../api";
 import { sendLowCreditsEmail } from "../email";
 import { isEnabled } from "../flags";
-import { rateLimit } from "../redis";
+import { runAIJobAfterResponse, STALE_MS } from "../jobs/run";
+import { rateLimit } from "../rate-limit";
 import { presignGet } from "../storage";
-import { aiProvider, aiQueue, aiStatus } from "./provider";
+import { aiProvider, aiStatus } from "./provider";
 
 type SessionUser = { id: string; role?: string | null };
 const LOW_CREDITS = 5;
@@ -26,7 +27,7 @@ export function moderatedText(body: CreateAIJobInput): string | null {
 export const scopedKey = (userId: string, key: string) => `${userId}:${key}`;
 
 /**
- * POST /ai/jobs (ARCHITECTURE §3): flag → rate limit → moderation → charge + insert in one locked TX → enqueue.
+ * POST /ai/jobs (ARCHITECTURE §3): flag → rate limit → moderation → charge + insert in one locked TX → run after response.
  * Returns the existing job for a repeated Idempotency-Key.
  */
 export async function createJob(user: SessionUser, idempotencyKey: string, body: CreateAIJobInput) {
@@ -97,12 +98,7 @@ export async function createJob(user: SessionUser, idempotencyKey: string, body:
     throw e;
   }
 
-  try {
-    await aiQueue.add("run", { jobId: job.id }, { jobId: job.id });
-  } catch (e) {
-    await failAndRefund(job, "Could not queue the job");
-    throw new ApiError(503, "QUEUE_UNAVAILABLE", "Couldn't start the job. Your credits were refunded.", String(e));
-  }
+  runAIJobAfterResponse(job.id);
   // Email once, when this charge crosses the low-credit line (not on every job below it).
   if (balanceBefore >= LOW_CREDITS && balanceBefore - cost < LOW_CREDITS) void sendLowCreditsEmail(user.id);
   return { job, replayed: false };
@@ -196,5 +192,22 @@ export type SerializedJob = Awaited<ReturnType<typeof serializeJob>>;
 export async function getOwnJob(userId: string, id: string) {
   const job = await prisma.aIJob.findFirst({ where: { id, userId } });
   if (!job) throw notFound("Job");
+  // Lazy recovery: a job past the function deadline died with its instance. End it and refund on the next poll.
+  if ((job.status === "queued" || job.status === "running") && Date.now() - job.createdAt.getTime() > STALE_MS) {
+    await failAndRefund(job, "The job took too long and was stopped. Your credits were refunded.");
+    return prisma.aIJob.findFirstOrThrow({ where: { id, userId } });
+  }
   return job;
+}
+
+/** Cron safety net for jobs nobody polls anymore (getOwnJob handles the polled ones). */
+export async function refundStaleJobs(now = Date.now()) {
+  const stale = await prisma.aIJob.findMany({
+    where: { status: { in: ["queued", "running"] }, createdAt: { lt: new Date(now - STALE_MS) } },
+    select: { id: true, userId: true, costCredits: true },
+    take: 200,
+  });
+  for (const job of stale)
+    await failAndRefund(job, "The job took too long and was stopped. Your credits were refunded.");
+  return { refunded: stale.length };
 }

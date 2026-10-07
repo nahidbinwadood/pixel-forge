@@ -1,24 +1,14 @@
 import { createHash } from "node:crypto";
-import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { prisma } from "@pixelforge/db";
-import { PLANS, storageKeys, type UploadJob } from "@pixelforge/shared";
+import { PLANS, storageKeys } from "@pixelforge/shared";
 import heicConvert from "heic-convert";
 import sharp from "sharp";
+import { deleteObjects, getObject, putObject } from "../storage";
 import { normalizeDeclared, sniffImageType } from "./sniff";
 
-const s3 = new S3Client({
-  endpoint: process.env.S3_ENDPOINT,
-  region: process.env.S3_REGION ?? "auto",
-  forcePathStyle: true,
-  credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY_ID ?? "",
-    secretAccessKey: process.env.S3_SECRET_ACCESS_KEY ?? "",
-  },
-});
-const Bucket = process.env.S3_BUCKET_UPLOADS ?? "pixelforge-uploads";
 const MAX_BYTES = Math.max(...Object.values(PLANS).map((p) => p.maxUploadMb)) * 1024 * 1024;
 
-/** Bad file content → asset rejected. Anything else (S3/DB/network) throws so BullMQ retries. */
+/** Bad file content → asset rejected. Anything else (S3/DB/network) throws so the runner retries. */
 class InvalidContent extends Error {}
 
 async function encode<T>(what: string, fn: () => Promise<T>): Promise<T> {
@@ -29,7 +19,7 @@ async function encode<T>(what: string, fn: () => Promise<T>): Promise<T> {
   }
 }
 
-export async function processUpload({ assetId }: UploadJob): Promise<void> {
+export async function processUpload({ assetId }: { assetId: string }): Promise<void> {
   const asset = await prisma.asset.findUnique({ where: { id: assetId } });
   if (asset?.status !== "processing") return; // already handled or deleted: idempotent no-op
 
@@ -38,9 +28,7 @@ export async function processUpload({ assetId }: UploadJob): Promise<void> {
   const previewKey = storageKeys.variant(key, "preview");
 
   try {
-    const obj = await s3.send(new GetObjectCommand({ Bucket, Key: key }));
-    if (!obj.Body) throw new Error(`empty body for ${key}`);
-    const input = await obj.Body.transformToByteArray();
+    const input = await getObject(key);
     if (input.length === 0 || input.length > MAX_BYTES) throw new InvalidContent(`size ${input.length} out of range`);
 
     const sniffed = sniffImageType(input);
@@ -75,9 +63,9 @@ export async function processUpload({ assetId }: UploadJob): Promise<void> {
     const [thumb, preview] = await Promise.all([variant(400), variant(1600)]);
 
     await Promise.all([
-      s3.send(new PutObjectCommand({ Bucket, Key: key, Body: stored, ContentType: mimeType })),
-      s3.send(new PutObjectCommand({ Bucket, Key: thumbKey, Body: thumb, ContentType: "image/webp" })),
-      s3.send(new PutObjectCommand({ Bucket, Key: previewKey, Body: preview, ContentType: "image/webp" })),
+      putObject(key, stored, mimeType),
+      putObject(thumbKey, thumb, "image/webp"),
+      putObject(previewKey, preview, "image/webp"),
     ]);
 
     await prisma.asset.update({
@@ -96,8 +84,6 @@ export async function processUpload({ assetId }: UploadJob): Promise<void> {
     if (!(e instanceof InvalidContent)) throw e;
     console.warn(`[uploads] rejected asset ${assetId}: ${e.message}`);
     await prisma.asset.update({ where: { id: assetId }, data: { status: "rejected" } });
-    await Promise.all(
-      [key, thumbKey, previewKey].map((Key) => s3.send(new DeleteObjectCommand({ Bucket, Key })).catch(() => {})),
-    );
+    await deleteObjects([key, thumbKey, previewKey]).catch(() => {});
   }
 }

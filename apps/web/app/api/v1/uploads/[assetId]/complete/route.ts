@@ -1,9 +1,12 @@
 import { prisma } from "@pixelforge/db";
 import { ApiError, notFound, requireUser, route } from "@/lib/api";
-import { uploadsQueue } from "@/lib/redis";
+import { processUploadAfterResponse } from "@/lib/jobs/run";
 import { deleteObjects, objectSize } from "@/lib/storage";
 
-/** Step 2 of upload: confirm the object landed with the declared size, then hand off to the worker. */
+/** Processing (validate, re-encode, thumbnails) runs after the response, inside this function's time budget. */
+export const maxDuration = 120;
+
+/** Step 2 of upload: confirm the object landed with the declared size, then process it in the background. */
 export const POST = route<{ assetId: string }>(async (_req, { assetId }) => {
   const user = await requireUser();
   const asset = await prisma.asset.findFirst({ where: { id: assetId, ownerId: user.id } });
@@ -19,6 +22,6 @@ export const POST = route<{ assetId: string }>(async (_req, { assetId }) => {
   }
 
   await prisma.asset.update({ where: { id: asset.id }, data: { status: "processing" } });
-  await uploadsQueue.add("process", { assetId: asset.id }, { jobId: asset.id });
+  processUploadAfterResponse(asset.id);
   return Response.json({ id: asset.id, status: "processing" }, { status: 202 });
 });

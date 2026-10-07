@@ -1,6 +1,6 @@
 import { prisma } from "@pixelforge/db";
 import { requireUser, route } from "@/lib/api";
-import { rateLimit } from "@/lib/redis";
+import { rateLimit } from "@/lib/rate-limit";
 
 /**
  * GDPR data export as a JSON download.

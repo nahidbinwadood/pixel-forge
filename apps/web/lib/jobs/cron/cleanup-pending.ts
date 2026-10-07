@@ -1,5 +1,5 @@
 import { prisma } from "@pixelforge/db";
-import { assetKeys, deleteKeys } from "../ai/storage";
+import { assetKeys, deleteObjects } from "../../storage";
 
 export const PENDING_TTL_HOURS = 24;
 
@@ -21,7 +21,7 @@ export const prismaPendingStore: PendingStore = {
     prisma.asset
       .deleteMany({ where: { id: { in: ids }, status: "pending", createdAt: { lt: cutoff } } })
       .then((r) => r.count),
-  deleteKeys,
+  deleteKeys: deleteObjects,
 };
 
 /** BACKLOG B-11: presigned uploads never completed within 24 h are removed (row + any partial object). */

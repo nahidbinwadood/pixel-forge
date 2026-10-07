@@ -1,7 +1,7 @@
 import { ApiError, parseJson, requireUser, route } from "@/lib/api";
 import { findProject, saveDocument, updateMeta } from "@/lib/projects";
 import { UpdateProject } from "@/lib/projects-schema";
-import { rateLimit } from "@/lib/redis";
+import { rateLimit } from "@/lib/rate-limit";
 
 type Params = { id: string };
 

@@ -50,7 +50,22 @@ export async function putObject(key: string, body: Uint8Array, contentType: stri
   await s3.send(new PutObjectCommand({ Bucket, Key: key, Body: body, ContentType: contentType }));
 }
 
+export async function getObject(Key: string): Promise<Uint8Array> {
+  const obj = await s3.send(new GetObjectCommand({ Bucket, Key }));
+  if (!obj.Body) throw new Error(`empty body for ${Key}`);
+  return obj.Body.transformToByteArray();
+}
+
+/** Bulk delete, 1000 keys per request (S3 limit). */
 export async function deleteObjects(keys: string[]) {
-  if (keys.length === 0) return;
-  await s3.send(new DeleteObjectsCommand({ Bucket, Delete: { Objects: keys.map((Key) => ({ Key })) } }));
+  for (let i = 0; i < keys.length; i += 1000) {
+    const Objects = keys.slice(i, i + 1000).map((Key) => ({ Key }));
+    await s3.send(new DeleteObjectsCommand({ Bucket, Delete: { Objects, Quiet: true } }));
+  }
+}
+
+/** Every storage key an asset row owns: the original plus its variants. */
+export function assetKeys(a: { storageKey: string; variants: unknown }): string[] {
+  const v = (a.variants ?? {}) as Record<string, unknown>;
+  return [a.storageKey, ...Object.values(v).filter((k): k is string => typeof k === "string")];
 }

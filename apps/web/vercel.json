@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm --filter @pixelforge/db generate && if [ \"$VERCEL_ENV\" = production ]; then pnpm --filter @pixelforge/db exec prisma migrate deploy; fi && next build",
+  "crons": [
+    { "path": "/api/cron/monthly-credit-grant", "schedule": "5 0 1 * *" },
+    { "path": "/api/cron/purge-deleted-users", "schedule": "30 3 * * *" },
+    { "path": "/api/cron/cleanup", "schedule": "15 4 * * *" }
+  ]
+}

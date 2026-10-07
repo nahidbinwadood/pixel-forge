@@ -3,19 +3,24 @@ import { type NextRequest, NextResponse } from "next/server";
 
 const PROTECTED = ["/home", "/uploads", "/settings", "/admin"];
 
-function storageOrigin(): string | undefined {
-  try {
-    return new URL(process.env.PUBLIC_ASSET_BASE_URL ?? process.env.S3_ENDPOINT ?? "").origin;
-  } catch {
-    return undefined;
-  }
+/** Presigned URLs live on S3_ENDPOINT, public assets on PUBLIC_ASSET_BASE_URL; on R2 these are different hosts. */
+function storageOrigins(): string[] {
+  const origins = [process.env.S3_ENDPOINT, process.env.PUBLIC_ASSET_BASE_URL].flatMap((u) => {
+    try {
+      return u ? [new URL(u).origin] : [];
+    } catch {
+      return [];
+    }
+  });
+  return [...new Set(origins)];
 }
 
 /** Per-request CSP with a nonce (SECURITY.md §3); Next auto-applies it to its own inline scripts. */
 function cspHeader(): { csp: string; nonce: string } {
   const nonce = crypto.randomUUID().replace(/-/g, "");
-  const storage = storageOrigin();
-  const extra = storage ? ` ${storage}` : "";
+  const extra = storageOrigins()
+    .map((o) => ` ${o}`)
+    .join("");
   const csp = [
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,

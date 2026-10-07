@@ -2,7 +2,7 @@ import { prisma } from "@pixelforge/db";
 import { PLANS, type PlanId } from "@pixelforge/shared";
 import { z } from "zod";
 import { ApiError, parseJson, route } from "@/lib/api";
-import { rateLimit } from "@/lib/redis";
+import { rateLimit } from "@/lib/rate-limit";
 
 const planIds = Object.keys(PLANS) as [PlanId, ...PlanId[]];
 

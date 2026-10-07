@@ -4,7 +4,7 @@ import { APP_NAME } from "@pixelforge/shared";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { sendEmail } from "@/lib/email";
-import { rateLimit } from "@/lib/redis";
+import { rateLimit } from "@/lib/rate-limit";
 
 const schema = z.object({
   name: z.string().trim().min(1).max(100),

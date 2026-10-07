@@ -2,7 +2,7 @@ import { PLANS, type PlanId } from "@pixelforge/shared";
 import { z } from "zod";
 import { parseJson, requireUser, route } from "@/lib/api";
 import { createCreditBundleCheckout, createPlanCheckout } from "@/lib/billing/checkout";
-import { rateLimit } from "@/lib/redis";
+import { rateLimit } from "@/lib/rate-limit";
 
 const paidPlanIds = (Object.keys(PLANS) as PlanId[]).filter((id) => id !== "free") as [PlanId, ...PlanId[]];
 

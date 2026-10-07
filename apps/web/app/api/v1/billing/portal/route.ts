@@ -1,6 +1,6 @@
 import { requireUser, route } from "@/lib/api";
 import { createPortalSession } from "@/lib/billing/checkout";
-import { rateLimit } from "@/lib/redis";
+import { rateLimit } from "@/lib/rate-limit";
 
 /** Creates a Stripe customer-portal session (manage payment method, cancel, invoices). */
 export const POST = route(async () => {
