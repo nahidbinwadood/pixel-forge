@@ -105,3 +105,4 @@ Acceptance criteria are demoable · `pnpm check` and `pnpm build` are green · t
 - On Windows, stopping a backgrounded `pnpm dev` can leave `next` alive on :3000, and Playwright then reuses the stale server. Kill it.
 - The S3 client must keep `requestChecksumCalculation: "WHEN_REQUIRED"`, or browser uploads fail with `BadDigest`.
 - Don't put `loading.tsx` above a layout that calls `notFound()`/`redirect()` for authorization (e.g. `(app)/admin`). The Suspense boundary starts streaming with HTTP 200 first, which leaks that the route exists. Keep `loading.tsx` per page segment.
+- Worktree agents (`isolation: "worktree"`) branch from the **pushed** default branch, not local HEAD. Push first, or tell agents to `git reset --hard <local-main-sha>` before they start.
