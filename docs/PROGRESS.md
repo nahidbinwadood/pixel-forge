@@ -1,6 +1,25 @@
 # Progress
 
-## Status: Phase 1 + Aurora Studio redesign complete. Next: Phase 2 (Core Editor MVP).
+## Status: Wave 1 build is paused (stopped by the user on 2026-10-07). See `docs/agents/README.md`.
+
+### Wave 1 (parallel agents)
+| Agent | Scope | State |
+|---|---|---|
+| A1 | Phase 2 core editor | ✅ Merged to main. Lint, typecheck, 55 unit tests, build and `e2e/editor.spec.ts` passed on the branch |
+| A2 | Phase 4 AI on Gemini + crons | ✅ Merged. Mock provider verified. **The real Gemini path has never run: there is no key** |
+| A4 | Email (SMTP), optional Stripe, `/pricing`, legal/SEO pages, CSP/headers | ✅ Merged. Low-credit email is wired into AI charges at the merge (B-21). **SMTP is untested live** |
+| A3 | Phase 3 templates + libraries | ⏸ WIP, 5 commits on branch `worktree-agent-a8c93542c7bd0b08f`. Last commit is an unchecked `wip:`. It was mid-way through debugging a build error |
+| A5 | Phases 8 + 9 community + teams | ⏸ WIP, 2 commits on branch `worktree-agent-a30b258b35dae3611`. Last commit is an unchecked `wip:`. It was mid-way through the UI (post-card) |
+
+Merged main: lint ✓, typecheck ✓, unit 94/94 ✓. **Not yet run on merged main:** `pnpm build`, full E2E suite, combined Prisma migration (the agents used `db push`).
+
+**To resume:**
+1. Resume A3 and A5. Either message the agents, or start fresh agents on their branches with RULES.md and their brief.
+2. Merge A3, then A5.
+3. Write one combined migration, then run `pnpm build` and the full E2E suite.
+4. Write the wave 2 briefs (Phase 6, Phase 7, Phase 10).
+
+Load limits apply: 2 agents at most, and heavy commands go through `.claude/heavy.mjs` (README).
 
 ### Done (Design redesign, 2026-10-07)
 - Aurora Studio design system, form component library, password policy, Framer Motion everywhere, all existing screens redesigned. See `docs/design/CHANGELOG.md`.
