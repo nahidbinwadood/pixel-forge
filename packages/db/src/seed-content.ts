@@ -263,7 +263,7 @@ export function buildTemplates(assets: Record<string, string>): TemplateSpec[] {
       sizePreset: "instagram_post",
       style: ["bold", "vibrant"],
       colors: [PALETTE.ember, ink],
-      tags: ["sale", "summer", "discount"],
+      tags: ["sale", "summer", "seasonal"],
       premium: false,
       published: true,
       background: linear(135, PALETTE.ember, ink),

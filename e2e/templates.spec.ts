@@ -64,7 +64,9 @@ test("premium templates show a badge and stay usable for free users (PRD US7.3)"
   // Clicking the badge explains the gate without blocking "Use template" (PRD: free users can open
   // premium templates; only export quality is gated, which is outside this feature's scope).
   await premiumCard.getByText("Premium").click();
-  await expect(page.getByRole("dialog").getByText("Premium template")).toBeVisible();
+  // "Premium templates are free to open..." (the dialog's own body copy) also contains the substring
+  // "Premium template", so match the heading specifically rather than any text in the dialog.
+  await expect(page.getByRole("dialog").getByRole("heading", { name: "Premium template" })).toBeVisible();
   await page.keyboard.press("Escape");
 
   await page.getByRole("img", { name: "New Collection Banner" }).click();
