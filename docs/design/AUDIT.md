@@ -129,3 +129,8 @@ The same motif recurs where it means something: the AI "generating" state (the b
 1. **Palette:** approve the cool aurora with Flare confined to premium (my recommendation), or use the brief's palette exactly as written?
 2. **Social proof:** OK to omit fake brands, testimonials and counters until real ones exist?
 3. **Hero imagery:** the light sweep needs 2–3 original photo pairs (before and after). Should I generate original images with an AI image tool, or use Unsplash-licensed photos (free commercial use, attribution recorded)? Pure SVG placeholders work technically, but they would undercut the hero.
+
+## 8. Decisions (2026-10-07)
+1. **Palette:** cool aurora (violet → blue → mint) everywhere; Flare (pink → orange) **only** on premium badges and upsells. Ember orange retires and the logo is redrawn in aurora.
+2. **Social proof:** omitted until real data exists. No placeholder logos, testimonials or counters.
+3. **Hero imagery:** AI-generated original photos plus their edited versions, stored under `apps/web/public/hero/` with provenance noted in `docs/design/ASSETS.md`.
