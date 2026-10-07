@@ -65,7 +65,15 @@ function renderNode(node: Node, index: number, defs: string[], assetUrls: Record
       const tx = node.align === "center" ? cx : node.align === "right" ? node.x + node.width : node.x;
       const fill = fillAttr(node.fill, defs, id);
       const stroke = node.stroke ? ` stroke="${node.stroke.color}" stroke-width="${node.stroke.width}"` : "";
-      return `<text${transform}${opacity} x="${tx}" y="${node.y + node.fontSize}" text-anchor="${anchor}" font-family="${escapeXml(node.fontFamily)}" font-size="${node.fontSize}" font-weight="${node.fontWeight}" letter-spacing="${node.letterSpacing}" fill="${fill}"${stroke}>${escapeXml(node.text)}</text>`;
+      // Templates author explicit line breaks ("30%\nOFF"); SVG <text> doesn't wrap, so split into tspans.
+      const lines = node.text.split("\n");
+      const tspans = lines
+        .map(
+          (line, i) =>
+            `<tspan x="${tx}" dy="${i === 0 ? 0 : node.fontSize * node.lineHeight}">${escapeXml(line)}</tspan>`,
+        )
+        .join("");
+      return `<text${transform}${opacity} y="${node.y + node.fontSize}" text-anchor="${anchor}" font-family="${escapeXml(node.fontFamily)}" font-size="${node.fontSize}" font-weight="${node.fontWeight}" letter-spacing="${node.letterSpacing}" fill="${fill}"${stroke}>${tspans}</text>`;
     }
     case "shape": {
       const fill = fillAttr(node.fill, defs, id);
