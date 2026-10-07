@@ -13,6 +13,13 @@ The user asked (2026-10-07) to finish the whole project with parallel agents. Th
 
 Every agent follows [RULES.md](RULES.md). Ports 3001–3005, databases `pixelforge_a1`…`a5`, Redis DBs 1–5.
 
+## Machine load limits (added after 3 hard power-offs on 2026-10-07)
+The host is an i5-13500T with 16 GB RAM, so running 5 agents at once overloaded it.
+- Run **2 agents at once** (user decision): A1 + A2, then A3 + A4, then A5. The heavy-command lock keeps peak load to a single build at a time. Running 2 at once still crashed the machine at 13:48: the power was cut instantly, with no bugcheck, which points to the PSU or adapter, or a thermal trip.
+- `~/.wslconfig` caps Docker at 3 GB RAM and 2 CPUs. The Windows max processor state is 80%, which also turns off turbo boost.
+- Heavy commands (`pnpm build`, Playwright, full `pnpm test`) run through `node .claude/heavy.mjs <cmd>`, a machine-wide lock. Playwright runs with `--workers=1`.
+- Don't leave `pnpm dev` running. Stop it as soon as you have finished testing in the browser.
+
 ## Merge (main session)
 1. Merge the branches in this order: A1 → A3 → A2 → A4 → A5. The editor document schema goes first because A3, A2 and A5 depend on it.
 2. Resolve conflicts in the `schema.prisma` blocks and the shared append-only files.
