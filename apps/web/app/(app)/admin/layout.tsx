@@ -21,6 +21,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         label={t("sections")}
         tabs={[
           { href: "/admin", label: t("users") },
+          { href: "/admin/templates", label: t("templates") },
           { href: "/admin/flags", label: t("flags") },
           { href: "/admin/health", label: t("health") },
         ]}

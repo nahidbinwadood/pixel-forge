@@ -1,9 +1,11 @@
 import { prisma } from "@pixelforge/db";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
+import { HomeTemplateTeaser } from "@/components/templates/home-template-teaser";
 import { personalWorkspaceId, userPlan } from "@/lib/account";
 import { requireUser } from "@/lib/api";
 import { presignGet } from "@/lib/storage";
+import { listTemplates } from "@/lib/templates";
 import { EditorTeaser } from "./editor-teaser";
 import { Library, type LibraryItem } from "./library";
 import { QuickActions } from "./quick-actions";
@@ -34,7 +36,12 @@ async function recentUploads(userId: string): Promise<LibraryItem[]> {
 /** Thin page: parallel data, then composition. Only working actions are offered (AUDIT §5). */
 export default async function HomePage() {
   const user = await requireUser();
-  const [t, plan, items] = await Promise.all([getTranslations("home"), userPlan(user.id), recentUploads(user.id)]);
+  const [t, plan, items, templatesPage] = await Promise.all([
+    getTranslations("home"),
+    userPlan(user.id),
+    recentUploads(user.id),
+    listTemplates({ limit: 3 }),
+  ]);
   const firstName = user.name.split(" ")[0] ?? "";
 
   return (
@@ -47,6 +54,8 @@ export default async function HomePage() {
         <QuickActions maxMb={plan.maxUploadMb} userId={user.id} className="lg:col-span-5" />
         <EditorTeaser className="lg:col-span-7" />
       </section>
+
+      <HomeTemplateTeaser templates={templatesPage.items} />
 
       <Library items={items} />
     </div>

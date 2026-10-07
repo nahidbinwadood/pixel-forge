@@ -109,6 +109,15 @@ export async function listTemplateCategories() {
   return prisma.templateCategory.findMany({ orderBy: { sortOrder: "asc" } });
 }
 
+/** Ids of templates the user has favorited — cheap, used to pre-mark hearts in the browser. */
+export async function listFavoriteTemplateIds(userId: string): Promise<string[]> {
+  const rows = await prisma.favorite.findMany({
+    where: { userId, targetType: "template" },
+    select: { targetId: true },
+  });
+  return rows.map((r) => r.targetId);
+}
+
 export interface TemplateListParams {
   q?: string;
   category?: string;
