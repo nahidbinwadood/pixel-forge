@@ -7,10 +7,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { track } from "@/lib/analytics";
 import type { BillingInterval } from "@/lib/billing/prices";
 import { liftHover, spring, stagger } from "@/lib/motion";
 
@@ -53,7 +54,13 @@ export function PricingPlans({
   const [interval, setInterval] = useState<BillingInterval>("monthly");
   const [loadingId, setLoadingId] = useState<string | null>(null);
 
+  // PRD §Analytics: a visit to the paywall/pricing surface.
+  useEffect(() => {
+    track("paywall_viewed", { source: "pricing_page" });
+  }, []);
+
   async function subscribe(plan: PricingPlanRow) {
+    track("upgrade_clicked", { planId: plan.id, interval });
     if (!isSignedIn) {
       router.push("/sign-up?next=/pricing");
       return;

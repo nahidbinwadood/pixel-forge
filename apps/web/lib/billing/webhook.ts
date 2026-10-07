@@ -1,6 +1,7 @@
 import "server-only";
 import { Prisma, prisma } from "@pixelforge/db";
 import type Stripe from "stripe";
+import { track } from "@/lib/analytics";
 import { planForPriceId } from "./prices";
 import { getStripe } from "./stripe";
 
@@ -28,6 +29,7 @@ async function upsertSubscriptionFromStripe(sub: Stripe.Subscription): Promise<v
   // A canceled/incomplete_expired subscription reads as Free (entitlements.ts also guards on status).
   const planId = sub.status === "canceled" || sub.status === "incomplete_expired" ? "free" : (mapped?.planId ?? "free");
 
+  const before = await prisma.subscription.findUnique({ where: { userId }, select: { planId: true } });
   await prisma.subscription.upsert({
     where: { userId },
     update: {
@@ -46,6 +48,10 @@ async function upsertSubscriptionFromStripe(sub: Stripe.Subscription): Promise<v
       stripeSubscriptionId: sub.id,
     },
   });
+  // PRD §Analytics: fires once the plan actually changes, not on every subscription webhook (Stripe
+  // sends one per status/period update too). Server-side; not gated on browser cookie consent — this
+  // is a billing/system event, not browser tracking.
+  if (before?.planId !== planId) track("plan_changed", { planId, status: sub.status }, userId);
 }
 
 async function recordCreditPurchase(userId: string, credits: number, dedupeKey: string): Promise<void> {
