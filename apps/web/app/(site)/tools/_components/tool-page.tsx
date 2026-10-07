@@ -1,18 +1,14 @@
 import { CheckIcon } from "lucide-react";
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { Reveal } from "@/components/motion/reveal";
 import { SectionStatus } from "@/components/marketing/section-heading";
+import { Reveal } from "@/components/motion/reveal";
 import { Button } from "@/components/ui/button";
 import { getUser } from "@/lib/api";
 
 /** Shared shell for the SEO /tools/* pages: honest status badge, benefits, one CTA. */
 export async function ToolPage({ namespace, benefitKeys }: { namespace: string; benefitKeys: readonly string[] }) {
-  const [t, tt, user] = await Promise.all([
-    getTranslations(namespace),
-    getTranslations("site.tools"),
-    getUser(),
-  ]);
+  const [t, tt, user] = await Promise.all([getTranslations(namespace), getTranslations("site.tools"), getUser()]);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 sm:py-24">

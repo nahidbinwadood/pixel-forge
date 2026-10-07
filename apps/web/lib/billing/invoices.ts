@@ -17,6 +17,14 @@ export async function listInvoices(userId: string, limit = 10): Promise<InvoiceR
     where: { userId },
     orderBy: { createdAt: "desc" },
     take: limit,
-    select: { id: true, amountDue: true, amountPaid: true, currency: true, status: true, hostedInvoiceUrl: true, createdAt: true },
+    select: {
+      id: true,
+      amountDue: true,
+      amountPaid: true,
+      currency: true,
+      status: true,
+      hostedInvoiceUrl: true,
+      createdAt: true,
+    },
   });
 }

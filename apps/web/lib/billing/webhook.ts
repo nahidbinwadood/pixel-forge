@@ -30,8 +30,21 @@ async function upsertSubscriptionFromStripe(sub: Stripe.Subscription): Promise<v
 
   await prisma.subscription.upsert({
     where: { userId },
-    update: { planId, status: sub.status, currentPeriodEnd: periodEnd, stripeCustomerId: cust, stripeSubscriptionId: sub.id },
-    create: { userId, planId, status: sub.status, currentPeriodEnd: periodEnd, stripeCustomerId: cust, stripeSubscriptionId: sub.id },
+    update: {
+      planId,
+      status: sub.status,
+      currentPeriodEnd: periodEnd,
+      stripeCustomerId: cust,
+      stripeSubscriptionId: sub.id,
+    },
+    create: {
+      userId,
+      planId,
+      status: sub.status,
+      currentPeriodEnd: periodEnd,
+      stripeCustomerId: cust,
+      stripeSubscriptionId: sub.id,
+    },
   });
 }
 

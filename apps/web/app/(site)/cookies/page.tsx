@@ -5,7 +5,10 @@ import { LegalPage } from "../_components/legal-page";
 export const metadata: Metadata = {
   title: "Cookie Policy",
   description: "What cookies PixelForge uses and the choices you have.",
-  openGraph: { title: "Cookie Policy · PixelForge", description: "What cookies PixelForge uses and the choices you have." },
+  openGraph: {
+    title: "Cookie Policy · PixelForge",
+    description: "What cookies PixelForge uses and the choices you have.",
+  },
 };
 
 const KEYS = ["essential", "analytics", "yourChoices", "changes"] as const;

@@ -5,7 +5,10 @@ import { LegalPage } from "../_components/legal-page";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description: "What PixelForge collects, why, and the choices you have.",
-  openGraph: { title: "Privacy Policy · PixelForge", description: "What PixelForge collects, why, and the choices you have." },
+  openGraph: {
+    title: "Privacy Policy · PixelForge",
+    description: "What PixelForge collects, why, and the choices you have.",
+  },
 };
 
 const KEYS = [

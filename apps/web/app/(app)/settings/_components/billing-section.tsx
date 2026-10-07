@@ -63,7 +63,9 @@ export async function BillingSection({
                     {t("invoiceAmount", { amount: formatAmount(inv.amountPaid, inv.currency), status: inv.status })}
                   </a>
                 ) : (
-                  <span>{t("invoiceAmount", { amount: formatAmount(inv.amountPaid, inv.currency), status: inv.status })}</span>
+                  <span>
+                    {t("invoiceAmount", { amount: formatAmount(inv.amountPaid, inv.currency), status: inv.status })}
+                  </span>
                 )}
               </li>
             ))}

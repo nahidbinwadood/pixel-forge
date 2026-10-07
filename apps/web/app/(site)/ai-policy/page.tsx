@@ -5,7 +5,10 @@ import { LegalPage } from "../_components/legal-page";
 export const metadata: Metadata = {
   title: "AI Usage Policy",
   description: "What powers PixelForge's AI tools, and what's off-limits.",
-  openGraph: { title: "AI Usage Policy · PixelForge", description: "What powers PixelForge's AI tools, and what's off-limits." },
+  openGraph: {
+    title: "AI Usage Policy · PixelForge",
+    description: "What powers PixelForge's AI tools, and what's off-limits.",
+  },
 };
 
 const KEYS = ["providers", "acceptableUse", "prohibitedContent", "moderation", "ownership", "limitations"] as const;

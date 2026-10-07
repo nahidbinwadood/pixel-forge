@@ -28,7 +28,7 @@ export function magicLinkTemplate(url: string): SentEmail {
     subject: `Your ${APP_NAME} sign-in link`,
     ...renderEmail({
       previewText: "Here's your one-time sign-in link.",
-      heading: "Sign in to " + APP_NAME,
+      heading: `Sign in to ${APP_NAME}`,
       paragraphs: [
         "Use the button below to sign in. This link works once and expires shortly.",
         "If you didn't request this, you can ignore this message.",

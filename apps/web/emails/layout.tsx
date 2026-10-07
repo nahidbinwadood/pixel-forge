@@ -1,5 +1,5 @@
-import { renderToStaticMarkup } from "react-dom/server";
 import { APP_NAME } from "@pixelforge/shared";
+import { renderToStaticMarkup } from "react-dom/server";
 
 /**
  * Shared email shell. Plain TSX → static HTML (no react-email dependency; matches the repo's
@@ -13,8 +13,7 @@ const BORDER = "#E5E5F5";
 const PRIMARY = "#5B3FE0";
 const BG = "#F7F7FC";
 
-const FONT_STACK =
-  "ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+const FONT_STACK = "ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
 export interface EmailButton {
   label: string;
@@ -33,6 +32,8 @@ export interface EmailContent {
 function Shell({ previewText, heading, paragraphs, button, fallbackNote }: EmailContent) {
   return (
     <html lang="en">
+      {/* biome-ignore lint/style/noHeadElement: this renders a standalone email HTML document via
+          renderToStaticMarkup, not a Next.js page — there's no next/head equivalent here. */}
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />

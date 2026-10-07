@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 /**
  * Per-request CSP with a nonce (SECURITY.md §3). Next.js auto-applies a nonce it finds in the

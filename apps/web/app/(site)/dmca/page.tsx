@@ -5,7 +5,10 @@ import { LegalPage } from "../_components/legal-page";
 export const metadata: Metadata = {
   title: "DMCA & Copyright Policy",
   description: "How PixelForge handles copyright takedown notices.",
-  openGraph: { title: "DMCA & Copyright Policy · PixelForge", description: "How PixelForge handles copyright takedown notices." },
+  openGraph: {
+    title: "DMCA & Copyright Policy · PixelForge",
+    description: "How PixelForge handles copyright takedown notices.",
+  },
 };
 
 const KEYS = ["policy", "filingNotice", "counterNotice", "repeatInfringers"] as const;

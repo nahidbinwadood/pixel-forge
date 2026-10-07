@@ -22,9 +22,7 @@ export default async function ContactPage() {
       <Reveal delay={0.05} className="mt-10">
         <ContactForm />
       </Reveal>
-      {fromAddress && (
-        <p className="mt-8 text-sm text-muted-foreground">{t("directEmail", { email: fromAddress })}</p>
-      )}
+      {fromAddress && <p className="mt-8 text-sm text-muted-foreground">{t("directEmail", { email: fromAddress })}</p>}
     </div>
   );
 }

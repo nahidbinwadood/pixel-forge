@@ -1,7 +1,7 @@
 "use client";
 
-import { CheckIcon } from "lucide-react";
 import { cn } from "cn";
+import { CheckIcon } from "lucide-react";
 import { m } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -11,8 +11,8 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { liftHover, spring, stagger } from "@/lib/motion";
 import type { BillingInterval } from "@/lib/billing/prices";
+import { liftHover, spring, stagger } from "@/lib/motion";
 
 export interface PricingPlanRow {
   id: "plus" | "pro" | "team";
@@ -92,7 +92,12 @@ export function PricingPlans({
               )}
             >
               {checked && (
-                <m.span layoutId="pricing-interval" transition={spring.ui} className="absolute inset-0 -z-10 rounded-full bg-card shadow-card" aria-hidden />
+                <m.span
+                  layoutId="pricing-interval"
+                  transition={spring.ui}
+                  className="absolute inset-0 -z-10 rounded-full bg-card shadow-card"
+                  aria-hidden
+                />
               )}
               {t(`toggle.${value}`)}
               {value === "yearly" && (
@@ -105,12 +110,7 @@ export function PricingPlans({
         })}
       </div>
 
-      <m.div
-        initial="hidden"
-        animate="show"
-        variants={stagger()}
-        className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4"
-      >
+      <m.div initial="hidden" animate="show" variants={stagger()} className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {/* Free is always available; no toggle/checkout needed. */}
         <m.div variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }} {...liftHover}>
           <PlanCard
@@ -130,7 +130,11 @@ export function PricingPlans({
           const available = interval === "monthly" ? plan.monthlyAvailable : plan.yearlyAvailable;
           const price = interval === "monthly" ? plan.monthlyUsd : plan.monthlyUsd * 10;
           return (
-            <m.div key={plan.id} variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }} {...liftHover}>
+            <m.div
+              key={plan.id}
+              variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}
+              {...liftHover}
+            >
               <PlanCard
                 name={plan.name}
                 blurb={t(`plans.${plan.id}.blurb`)}

@@ -5,7 +5,15 @@ import type { ReactNode } from "react";
 import { Reveal } from "@/components/motion/reveal";
 
 const PLAN_IDS: PlanId[] = ["free", "plus", "pro", "team"];
-const ROWS = ["monthlyCredits", "maxExportPx", "watermark", "premiumContent", "storageMb", "maxUploadMb", "seats"] as const;
+const ROWS = [
+  "monthlyCredits",
+  "maxExportPx",
+  "watermark",
+  "premiumContent",
+  "storageMb",
+  "maxUploadMb",
+  "seats",
+] as const;
 
 /** Static feature comparison, straight from packages/shared/src/plans.ts. Server component: no interactivity. */
 export async function ComparisonTable() {

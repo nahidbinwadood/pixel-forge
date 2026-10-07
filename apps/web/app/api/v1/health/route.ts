@@ -36,5 +36,8 @@ export const GET = route(async (req) => {
   ]);
   const checks = { database: db, redis: redisCheck, storage, uploadsQueue: queue };
   const ok = Object.values(checks).every((c) => c.ok);
-  return Response.json({ status: ok ? "ok" : "degraded", time: new Date().toISOString(), checks }, { status: ok ? 200 : 503 });
+  return Response.json(
+    { status: ok ? "ok" : "degraded", time: new Date().toISOString(), checks },
+    { status: ok ? 200 : 503 },
+  );
 });

@@ -1,11 +1,11 @@
 import "server-only";
 import { prisma } from "@pixelforge/db";
+import type { PlanId } from "@pixelforge/shared";
 import { ApiError } from "@/lib/api";
 import { bundlePriceId, findBundle } from "./bundles";
+import type { BillingInterval } from "./prices";
 import { planPriceId } from "./prices";
 import { getStripe, stripeEnabled } from "./stripe";
-import type { BillingInterval } from "./prices";
-import type { PlanId } from "@pixelforge/shared";
 
 async function ensureCustomerId(userId: string, email: string): Promise<string> {
   const sub = await prisma.subscription.findUnique({ where: { userId }, select: { stripeCustomerId: true } });

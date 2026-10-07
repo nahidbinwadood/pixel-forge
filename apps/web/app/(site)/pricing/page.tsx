@@ -1,5 +1,5 @@
-import type { Metadata } from "next";
 import { PLANS } from "@pixelforge/shared";
+import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Reveal } from "@/components/motion/reveal";
 import { getUser } from "@/lib/api";
