@@ -18,21 +18,35 @@ export type WriteTone = (typeof WRITE_TONES)[number];
 
 const prompt = z.string().trim().min(3, "Describe it in a few more words").max(1000);
 
-export const textToImageInput = z.object({
+/** Form schema (every field required, so react-hook-form values are fully typed). */
+export const textToImageForm = z.object({
   prompt,
-  style: z.enum(IMAGE_STYLES).default("none"),
-  aspectRatio: z.enum(ASPECT_RATIOS).default("1:1"),
-  negativePrompt: z.string().trim().max(300).optional(),
-  variations: z.number().int().min(1).max(4).default(1),
+  style: z.enum(IMAGE_STYLES),
+  aspectRatio: z.enum(ASPECT_RATIOS),
+  negativePrompt: z.string().trim().max(300),
+  variations: z.number().int().min(1).max(4),
+});
+
+/** API schema: the form schema with defaults for API callers that omit options. */
+export const textToImageInput = textToImageForm.extend({
+  style: textToImageForm.shape.style.default("none"),
+  aspectRatio: textToImageForm.shape.aspectRatio.default("1:1"),
+  negativePrompt: textToImageForm.shape.negativePrompt.optional(),
+  variations: textToImageForm.shape.variations.default(1),
 });
 
 export const bgRemoveInput = z.object({ assetId: z.string().min(1).max(64) });
 
-export const writeInput = z.object({
+export const writeForm = z.object({
   kind: z.enum(WRITE_KINDS),
   topic: z.string().trim().min(3, "Tell us a bit more").max(500),
-  tone: z.enum(WRITE_TONES).default("friendly"),
-  count: z.number().int().min(1).max(5).default(3),
+  tone: z.enum(WRITE_TONES),
+  count: z.number().int().min(1).max(5),
+});
+
+export const writeInput = writeForm.extend({
+  tone: writeForm.shape.tone.default("friendly"),
+  count: writeForm.shape.count.default(3),
 });
 
 export const createAIJobInput = z.discriminatedUnion("tool", [

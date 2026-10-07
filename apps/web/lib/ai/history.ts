@@ -1,5 +1,5 @@
 import "server-only";
-import { prisma } from "@pixelforge/db";
+import { type AIJobStatus, prisma } from "@pixelforge/db";
 import type { AIJobOutput, AITool } from "@pixelforge/shared";
 import { personalWorkspaceId } from "../account";
 import { presignGet } from "../storage";
@@ -8,7 +8,7 @@ import { historySummary } from "./summary";
 export interface HistoryItem {
   id: string;
   tool: AITool;
-  status: string;
+  status: AIJobStatus;
   summary: string;
   costCredits: number;
   favorite: boolean;
