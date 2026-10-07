@@ -6,6 +6,7 @@ import { Loader2Icon } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { ExportDialog } from "./export-dialog";
 import { FloatingToolbar } from "./floating-toolbar";
 import { LeftRail } from "./left-rail";
@@ -72,7 +73,9 @@ export function EditorShell({
   return (
     // key: a conflict copy navigates to a new id, which must start a fresh store.
     <EditorStoreProvider key={project.id} initial={initial}>
-      <EditorLayout userId={userId} />
+      <TooltipProvider delayDuration={300}>
+        <EditorLayout userId={userId} />
+      </TooltipProvider>
     </EditorStoreProvider>
   );
 }
