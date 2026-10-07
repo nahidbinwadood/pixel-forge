@@ -10,6 +10,7 @@
     "typecheck": "tsc -p ."
   },
   "dependencies": {
+    "immer": "^11.1.21",
     "zod": "^4.6.5"
   },
   "devDependencies": {

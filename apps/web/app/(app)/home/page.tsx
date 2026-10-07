@@ -3,10 +3,11 @@ import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { personalWorkspaceId, userPlan } from "@/lib/account";
 import { requireUser } from "@/lib/api";
+import { recentProjects } from "@/lib/projects";
 import { presignGet } from "@/lib/storage";
-import { EditorTeaser } from "./editor-teaser";
 import { Library, type LibraryItem } from "./library";
 import { QuickActions } from "./quick-actions";
+import { RecentDesigns } from "./recent-designs";
 
 export const metadata: Metadata = { title: "Home" };
 
@@ -34,7 +35,12 @@ async function recentUploads(userId: string): Promise<LibraryItem[]> {
 /** Thin page: parallel data, then composition. Only working actions are offered (AUDIT §5). */
 export default async function HomePage() {
   const user = await requireUser();
-  const [t, plan, items] = await Promise.all([getTranslations("home"), userPlan(user.id), recentUploads(user.id)]);
+  const [t, plan, items, designs] = await Promise.all([
+    getTranslations("home"),
+    userPlan(user.id),
+    recentUploads(user.id),
+    recentProjects(user.id),
+  ]);
   const firstName = user.name.split(" ")[0] ?? "";
 
   return (
@@ -45,7 +51,7 @@ export default async function HomePage() {
 
       <section className="grid gap-6 lg:grid-cols-12">
         <QuickActions maxMb={plan.maxUploadMb} userId={user.id} className="lg:col-span-5" />
-        <EditorTeaser className="lg:col-span-7" />
+        <RecentDesigns designs={designs} userId={user.id} className="lg:col-span-7" />
       </section>
 
       <Library items={items} />

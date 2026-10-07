@@ -18,3 +18,7 @@ Items deferred out of a phase or referenced by a TODO in code. Format: `B-<n> ·
 - B-14 · Sentry wiring (web + worker) · Phase 11
 - B-15 · Monthly credit grant cron (signup grant exists; recurring grant does not) · Phase 4
 - B-16 · Service worker + offline caching · Phase 2 (with editor offline mode)
+- B-A1-1 · Full-resolution export: load each image's original (not the 1600 px preview) when exporting above preview size · Phase 6
+- B-A1-2 · Purge designs that sit in trash for 30 days (worker cron) + a Trash view to restore them · Phase 3
+- B-A1-3 · Multi-page designs in the editor UI (the document model already supports pages; the UI edits page 1) · Phase 6
+- B-A1-4 · Sticker/stock library in the Elements panel (sticker nodes render as placeholders until then) · Phase 3

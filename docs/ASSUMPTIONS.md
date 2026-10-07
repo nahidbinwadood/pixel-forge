@@ -51,3 +51,11 @@ Answers from the kickoff (2026-10-07) plus defaults chosen where the brief left 
 - Stock content: Unsplash/Pexels APIs (attribution stored per asset), Google Fonts, and self-made or CC0 stickers. No Picsart assets of any kind.
 - Free-tier AI credit refill is **monthly**, and the amount lives in config.
 - User content is private by default. Nothing is public until Community (Phase 8).
+
+## Editor (A1)
+| # | Decision | Why |
+|---|---|---|
+| D-A1-1 | The document changes only through `editor-core` commands applied as Immer patches (history cap 100; rapid edits coalesce by key within 800 ms). The editor store is a small `useSyncExternalStore` store, not Zustand | One dependency fewer, and each panel re-renders only the slice it reads |
+| D-A1-2 | Autosave: PATCH `{document, revision}` 2 s after the last edit. A stale revision returns 409, and the client saves its version as a **copy** instead of overwriting. Unsaved edits are mirrored to IndexedDB for crash recovery | Never lose work, never clobber another tab |
+| D-A1-3 | Thumbnails: the client renders page 1 (≤ 480 px WebP) and PUTs it to `/api/v1/projects/:id/thumbnail`. The server stores it in S3 (≤ 512 KB, PNG/WebP/JPEG only) | Simplest correct option, no data URLs in the DB |
+| D-A1-4 | Free-plan users can preview premium filters in the editor, but export is blocked with the paywall message (US4.3) | Users see the value before the paywall |
