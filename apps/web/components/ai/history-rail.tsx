@@ -4,7 +4,7 @@ import type { AITool } from "@pixelforge/shared";
 import { cn } from "cn";
 import { CornerUpLeftIcon, HistoryIcon, StarIcon } from "lucide-react";
 import { AnimatePresence, m } from "motion/react";
-import { useFormatter, useTranslations } from "next-intl";
+import { useFormatter, useNow, useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { listItem } from "@/lib/motion";
@@ -39,6 +39,7 @@ export function HistoryRail({
   const t = useTranslations("ai.history");
   const ts = useTranslations("ai.status");
   const format = useFormatter();
+  const now = useNow({ updateInterval: 60_000 });
   const [items, setItems] = useState(initial);
   const [cursor, setCursor] = useState(initialCursor);
   const [favOnly, setFavOnly] = useState(false);
@@ -122,7 +123,7 @@ export function HistoryRail({
                   <p className="line-clamp-2 font-mono text-xs leading-snug">{item.summary}</p>
                   <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <span className={cn("size-1.5 rounded-full", STATUS_DOT[item.status])} aria-hidden />
-                    {ts(item.status)} · {format.relativeTime(new Date(item.createdAt))}
+                    {ts(item.status)} · {format.relativeTime(new Date(item.createdAt), now)}
                   </p>
                 </div>
                 <div className="flex shrink-0 flex-col gap-0.5">

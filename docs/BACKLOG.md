@@ -18,3 +18,8 @@ Items deferred out of a phase or referenced by a TODO in code. Format: `B-<n> ·
 - B-14 · Sentry wiring (web + worker) · Phase 11
 - B-15 · Monthly credit grant cron (signup grant exists; recurring grant does not) · Phase 4
 - B-16 · Service worker + offline caching · Phase 2 (with editor offline mode)
+- B-10, B-11, B-15 · done in Phase 4 as worker crons (`apps/worker/src/cron/*`, repeatable BullMQ jobs on queue `maintenance`)
+- B-17 · Seed / reproducible generations once the image provider supports it (ASSUMPTIONS A2-7) · V2
+- B-18 · "Credits low" email when a charge leaves the balance under ~20% of the plan allowance (needs the A4 email helper) · Phase 5
+- B-19 · Refine-mask brush for background removal (PRD US9.2) and a dedicated matting model behind `editImage` · Phase 6
+- B-20 · Purge job skips users whose projects live in a shared team workspace (FK on `Project.creator`); decide reassign-vs-delete when Teams land · Phase 9
