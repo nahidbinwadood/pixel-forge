@@ -25,3 +25,9 @@ export async function getEntitlements(userId: string): Promise<Entitlements> {
     currentPeriodEnd: sub?.currentPeriodEnd ?? null,
   };
 }
+
+/** Whether the user already has a Stripe customer (so "Manage billing" can open the portal directly). */
+export async function hasStripeCustomerId(userId: string): Promise<boolean> {
+  const sub = await prisma.subscription.findUnique({ where: { userId }, select: { stripeCustomerId: true } });
+  return Boolean(sub?.stripeCustomerId);
+}

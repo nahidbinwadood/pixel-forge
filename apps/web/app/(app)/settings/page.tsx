@@ -3,7 +3,11 @@ import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/shared/page-header";
 import { creditBalance, userPlan } from "@/lib/account";
 import { requireUser } from "@/lib/api";
+import { getEntitlements, hasStripeCustomerId } from "@/lib/billing/entitlements";
+import { listInvoices } from "@/lib/billing/invoices";
+import { stripeEnabled } from "@/lib/billing/stripe";
 import { AppearanceSection } from "./_components/appearance-section";
+import { BillingSection } from "./_components/billing-section";
 import { DataSection } from "./_components/data-section";
 import { PasswordForm } from "./_components/password-form";
 import { PlanWidget } from "./_components/plan-widget";
@@ -18,16 +22,20 @@ export const metadata: Metadata = { title: "Settings" };
 /** Thin page: parallel data fetch, then composition of section components. */
 export default async function SettingsPage() {
   const user = await requireUser();
-  const [plan, credits, t] = await Promise.all([
+  const [plan, credits, t, entitlements, invoices, hasStripeCustomer] = await Promise.all([
     userPlan(user.id),
     creditBalance(user.id),
     getTranslations("settings"),
+    getEntitlements(user.id),
+    listInvoices(user.id),
+    hasStripeCustomerId(user.id),
   ]);
 
   const sections = [
     { id: "profile", label: t("profile") },
     { id: "appearance", label: t("appearance") },
     { id: "security", label: t("security") },
+    { id: "billing", label: t("billing") },
     { id: "data", label: t("data") },
   ];
 
@@ -52,6 +60,17 @@ export default async function SettingsPage() {
           <SettingsSection id="security" title={t("security")} description={t("securityDesc")}>
             <PasswordForm />
             <TwoFactorForm enabled={Boolean(user.twoFactorEnabled)} />
+          </SettingsSection>
+
+          <SettingsSection id="billing" title={t("billing")} description={t("billingDesc")}>
+            <BillingSection
+              planName={entitlements.name}
+              status={entitlements.status}
+              isPaid={entitlements.isPaid}
+              hasStripeCustomer={hasStripeCustomer}
+              stripeEnabled={stripeEnabled}
+              invoices={invoices}
+            />
           </SettingsSection>
 
           <SettingsSection id="data" title={t("data")} description={t("dataDesc")}>
