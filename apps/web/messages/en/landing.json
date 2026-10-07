@@ -1,16 +1,87 @@
 {
-  "title": "Create scroll-stopping visuals. No design skills needed.",
-  "subtitle": "Edit photos, design graphics and use AI tools, right in your browser.",
-  "ctaStart": "Get started free",
-  "ctaSignIn": "Sign in",
+  "nav": {
+    "tools": "Tools",
+    "how": "How it works",
+    "faq": "FAQ",
+    "signIn": "Sign in",
+    "start": "Start free",
+    "menu": "Main"
+  },
+  "hero": {
+    "titleLead": "Drag the light.",
+    "titleTail": "Watch your photo",
+    "titleKeyword": "transform.",
+    "subtitle": "PixelForge is a photo editor and design studio in your browser. Adjust, filter, cut out and create without the learning curve.",
+    "cta": "Start creating, free",
+    "promptLabel": "Describe what you want to make or drop an image",
+    "promptPlaceholder": "Describe what you want or drop an image…",
+    "promptSubmit": "Start",
+    "note": "Free during beta · no card needed",
+    "sweepHint": "Try it: drag the light across the photo.",
+    "sweepAlt": "A mountain lake under storm clouds, before and after editing"
+  },
   "tools": {
+    "title": "Every tool, one canvas",
+    "subtitle": "Start with a photo, a template or an idea. Everything opens in the same editor.",
+    "soon": "Coming soon",
+    "available": "Available now",
     "editor": "Photo editor",
-    "editorDesc": "Crop, adjust, filter and retouch.",
-    "design": "Design from templates",
-    "designDesc": "Posts, stories, flyers and more.",
+    "editorDesc": "Crop, adjust light and color, apply filters. Your original is never touched.",
     "bgRemove": "Background remover",
-    "bgRemoveDesc": "One click, clean cutouts.",
+    "bgRemoveDesc": "Lift the subject off any background in one click.",
     "aiImage": "AI image generator",
-    "aiImageDesc": "Describe it, get it."
+    "aiImageDesc": "Describe a scene and get images you can keep editing.",
+    "templates": "Templates",
+    "templatesDesc": "Posts, stories and flyers sized for every platform.",
+    "collage": "Collage",
+    "collageDesc": "Drop in photos and let the grid do the layout."
+  },
+  "how": {
+    "title": "From photo to post in three moves",
+    "steps": {
+      "upload": "Upload or describe",
+      "uploadDesc": "Drop a photo, paste one, or describe what you want to create.",
+      "edit": "Edit with light",
+      "editDesc": "Pull sliders, try filters, compare before and after with a single drag.",
+      "export": "Export anywhere",
+      "exportDesc": "Download PNG, JPG or WebP sized for the platform you post on."
+    }
+  },
+  "showcase": {
+    "title": "Same photo. Better light.",
+    "subtitle": "Every edit is non-destructive. Slide back to the original whenever you want, and nothing is lost.",
+    "alt": "A woman in a sun hat on a beach at sunset, before and after editing"
+  },
+  "faq": {
+    "title": "Questions, answered",
+    "items": {
+      "price": {
+        "q": "Is it free?",
+        "a": "Yes. PixelForge is free while it's in beta. Every account gets monthly AI credits. Paid plans with more credits and higher export sizes come later, and we'll tell you before anything changes."
+      },
+      "coming": {
+        "q": "What's available today, and what's coming?",
+        "a": "Today you can create an account and build your photo library. The editor, templates and AI tools (background remover, image generator, AI writer) are rolling out over the coming releases."
+      },
+      "privacy": {
+        "q": "Who can see my uploads?",
+        "a": "Only you. Uploads are private by default, location and camera data are stripped from every image, and you can download or delete all of your data from Settings at any time."
+      }
+    }
+  },
+  "cta": {
+    "title": "Your next photo is waiting for better light.",
+    "button": "Start creating, free"
+  },
+  "footer": {
+    "product": "Product",
+    "company": "Company",
+    "legal": "Legal",
+    "terms": "Terms",
+    "privacy": "Privacy",
+    "contentPolicy": "Content policy",
+    "about": "About",
+    "comingSoon": "Pages coming soon",
+    "rights": "© {year} PixelForge. Made for people who'd rather create than configure."
   }
 }

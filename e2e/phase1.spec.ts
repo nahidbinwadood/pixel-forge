@@ -11,9 +11,9 @@ async function signUp(page: Page) {
   await page.goto("/sign-up");
   await page.getByLabel("Name").fill("Ada Tester");
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill("correct-horse-battery");
+  await page.getByLabel("Password", { exact: true }).fill("Correct-horse-9!");
   await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page).toHaveURL(/\/home$/);
+  await expect(page).toHaveURL(/\/home$/, { timeout: 30_000 }); // first dev compile of /home is slow
   return email;
 }
 
@@ -38,13 +38,13 @@ test("sign up lands on home with free credits, sign out and back in", async ({ p
 
   await page.goto("/sign-in");
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill("wrong-password-123");
+  await page.getByLabel("Password", { exact: true }).fill("Wrong-pass-9!");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
   await expect(page.getByText("Email or password is incorrect.")).toBeVisible();
 
-  await page.getByLabel("Password").fill("correct-horse-battery");
+  await page.getByLabel("Password", { exact: true }).fill("Correct-horse-9!");
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(page).toHaveURL(/\/home$/);
+  await expect(page).toHaveURL(/\/home$/, { timeout: 30_000 }); // first dev compile of /home is slow
 });
 
 test("upload an image, see its thumbnail, delete it", async ({ page }) => {

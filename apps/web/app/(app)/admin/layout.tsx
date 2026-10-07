@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
+import { PageHeader } from "@/components/shared/page-header";
 import { getUser } from "@/lib/api";
 import { AdminTabs } from "./admin-tabs";
 
@@ -15,8 +16,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">
-      <h1 className="text-2xl font-semibold tracking-tight">{t("title")}</h1>
+      <PageHeader title={t("title")} description={t("description")} />
       <AdminTabs
+        label={t("sections")}
         tabs={[
           { href: "/admin", label: t("users") },
           { href: "/admin/flags", label: t("flags") },

@@ -20,13 +20,28 @@ test("capture all routes", async ({ browser }) => {
   for (const theme of THEMES) {
     for (const width of WIDTHS) {
       const ctx = await browser.newContext({ viewport: { width, height: 900 }, colorScheme: theme });
+      // Dark is the app default (not "system"), so pin the theme explicitly for each run.
+      await ctx.addInitScript((t) => window.localStorage.setItem("theme", t), theme);
       const page = await ctx.newPage();
-      const shot = (n: string) =>
-        page.screenshot({ path: `${OUT}/${n}--${width}-${theme}.png`, fullPage: true, animations: "disabled" });
+      // Scroll through the page so whileInView sections reveal before the full-page capture.
+      const revealAll = () =>
+        page.evaluate(async () => {
+          for (let y = 0; y < document.body.scrollHeight; y += 400) {
+            window.scrollTo(0, y);
+            await new Promise((r) => setTimeout(r, 120));
+          }
+          window.scrollTo(0, 0);
+          await new Promise((r) => setTimeout(r, 400));
+        });
+      const shot = async (n: string) => {
+        await revealAll();
+        return page.screenshot({ path: `${OUT}/${n}--${width}-${theme}.png`, fullPage: true, animations: "disabled" });
+      };
 
       for (const route of PUBLIC) {
         await page.goto(route);
-        await page.waitForLoadState("networkidle");
+        await page.waitForLoadState("load");
+        await page.waitForTimeout(2_800); // let the intro light-sweep settle
         await shot(name(route));
       }
 
@@ -34,7 +49,7 @@ test("capture all routes", async ({ browser }) => {
       await page.goto("/sign-up");
       await page.getByLabel("Name").fill("Maya Chen");
       await page.getByLabel("Email").fill(email);
-      await page.getByLabel("Password").fill("correct-horse-battery");
+      await page.getByLabel("Password", { exact: true }).fill("Correct-horse-9!");
       await page.getByRole("button", { name: "Create account" }).click();
       await page.waitForURL(/\/home$/);
       execSync("docker compose exec -T postgres psql -U pixelforge", {
@@ -44,14 +59,17 @@ test("capture all routes", async ({ browser }) => {
 
       for (const route of PRIVATE) {
         await page.goto(route);
-        await page.waitForLoadState("networkidle");
+        await page.waitForLoadState("load");
+        await page.waitForTimeout(2_800); // let the intro light-sweep settle
         await shot(name(route));
       }
 
       // Uploads with content
       await page.goto("/uploads");
+      await page.waitForLoadState("load");
+      await page.waitForTimeout(1_500); // hydration: the input's onChange must be attached before we set files
       await page.getByTestId("file-input").setInputFiles({ name: "photo.png", mimeType: "image/png", buffer: PNG });
-      await page.getByRole("img", { name: "photo.png" }).waitFor({ timeout: 20_000 });
+      await page.getByRole("img", { name: "photo.png" }).waitFor({ timeout: 45_000 });
       await shot("uploads-filled");
       await ctx.close();
     }

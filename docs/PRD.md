@@ -28,7 +28,7 @@ PixelForge is a browser-based creative suite where anyone can edit photos, desig
 
 ### E1 — Authentication
 - **US1.1** As a visitor, I can sign up with email and password so that my work is saved.
-  - Given a valid email and a password of ≥ 10 characters, when I submit, then my account is created, a verification email is sent, and I land on Home signed in.
+  - Given a valid email and a password meeting the policy (≥ 6 characters with an uppercase letter, a lowercase letter, a number and a special character; enforced on client and server), when I submit, then my account is created, a verification email is sent, and I land on Home signed in.
   - Given an email that already exists, when I submit, then I see a generic "check your email" message (no account enumeration).
 - **US1.2** As a visitor, I can continue with Google.
   - Given I approve the Google consent screen, when I am redirected back, then I am signed in, and a new account is created only if none exists for that verified email.

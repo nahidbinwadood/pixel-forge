@@ -8,6 +8,6 @@ export default defineConfig({
   globalSetup: "../../e2e/global-setup.ts",
   fullyParallel: false,
   workers: 1,
-  timeout: 180_000,
+  timeout: 900_000,
   projects: [{ name: "chromium", use: { browserName: "chromium" } }],
 });

@@ -1,72 +1,93 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { passwordSchema } from "@pixelforge/shared";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { AuthForm } from "@/components/auth-form";
+import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { AuthCard, AuthDivider, AuthNotice, authErrorKind } from "@/components/auth-form";
+import { Form } from "@/components/form/form";
+import { FormInput } from "@/components/form/form-input";
+import { FormPassword } from "@/components/form/form-password";
+import { FormRootError, FormSubmit } from "@/components/form/form-submit";
 import { GoogleButton } from "@/components/google-button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { track } from "@/lib/analytics";
 import { authClient } from "@/lib/auth-client";
 
 export function SignUpForm({ google }: { google: boolean }) {
   const t = useTranslations("auth");
+  const schema = useMemo(
+    () =>
+      z.object({
+        name: z.string().trim().min(1, t("validation.name")).max(80),
+        email: z.email(t("validation.email")),
+        password: passwordSchema,
+      }),
+    [t],
+  );
+  type Values = z.infer<typeof schema>;
+  const form = useForm<Values>({
+    resolver: zodResolver(schema),
+    defaultValues: { name: "", email: "", password: "" },
+    mode: "onTouched",
+  });
+  const [notice, setNotice] = useState<string>();
+
+  async function onSubmit(values: Values) {
+    setNotice(undefined);
+    const { data, error } = await authClient.signUp.email({ ...values, callbackURL: "/home" });
+    if (!error) {
+      track("signup_completed", { method: "email" }, data?.user.id);
+      window.location.assign("/home");
+      return;
+    }
+    switch (authErrorKind(error)) {
+      case "rateLimited":
+        form.setError("root", { message: t("rateLimited") });
+        break;
+      case "passwordPolicy":
+        form.setError("password", { message: t("passwordPolicy") });
+        break;
+      case "exists":
+        // Same neutral message as a fresh sign-up awaiting verification (PRD US1.1, no account enumeration).
+        setNotice(t("checkEmail"));
+        break;
+      default:
+        form.setError("root", { message: error.message ?? t("genericError") });
+    }
+  }
+
   return (
-    <AuthForm
+    <AuthCard
       title={t("signUpTitle")}
-      submitLabel={t("signUp")}
-      onSubmit={async (data) => {
-        const { data: res, error } = await authClient.signUp.email({
-          name: String(data.get("name")),
-          email: String(data.get("email")),
-          password: String(data.get("password")),
-          callbackURL: "/home",
-        });
-        if (!error) {
-          track("signup_completed", { method: "email" }, res?.user.id);
-          window.location.assign("/home");
-          return;
-        }
-        if (error.status === 429) return t("rateLimited");
-        // Existing email: same neutral message as success-with-verification (PRD US1.1, no enumeration).
-        if (error.status === 422 || error.code === "USER_ALREADY_EXISTS") return t("checkEmail");
-        return error.message ?? t("checkEmail");
-      }}
+      subtitle={t("signUpSubtitle")}
       footer={
-        <div className="flex flex-col gap-3 text-sm">
-          {google && <GoogleButton />}
-          <p className="text-muted-foreground">
-            {t("haveAccount")}{" "}
-            <Link className="font-medium text-foreground underline-offset-4 hover:underline" href="/sign-in">
-              {t("signIn")}
-            </Link>
-          </p>
-        </div>
+        <p className="text-text-2">
+          {t("haveAccount")}{" "}
+          <Link className="font-medium text-primary underline-offset-4 hover:underline" href="/sign-in">
+            {t("signIn")}
+          </Link>
+        </p>
       }
     >
-      <div className="grid gap-2">
-        <Label htmlFor="name">{t("name")}</Label>
-        <Input id="name" name="name" autoComplete="name" required maxLength={80} />
+      <div className="flex flex-col gap-5">
+        {google && (
+          <>
+            <GoogleButton />
+            <AuthDivider label={t("or")} />
+          </>
+        )}
+        <Form form={form} onSubmit={onSubmit}>
+          <FormInput<Values> name="name" label={t("name")} autoComplete="name" maxLength={80} />
+          <FormInput<Values> name="email" label={t("email")} type="email" autoComplete="email" />
+          <FormPassword<Values> name="password" label={t("password")} autoComplete="new-password" showRules />
+          <FormRootError />
+          {notice && <AuthNotice>{notice}</AuthNotice>}
+          <FormSubmit className="w-full">{t("signUp")}</FormSubmit>
+        </Form>
       </div>
-      <div className="grid gap-2">
-        <Label htmlFor="email">{t("email")}</Label>
-        <Input id="email" name="email" type="email" autoComplete="email" required />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="password">{t("password")}</Label>
-        <Input
-          id="password"
-          name="password"
-          type="password"
-          autoComplete="new-password"
-          required
-          minLength={10}
-          aria-describedby="password-hint"
-        />
-        <p id="password-hint" className="text-xs text-muted-foreground">
-          {t("passwordHint")}
-        </p>
-      </div>
-    </AuthForm>
+    </AuthCard>
   );
 }

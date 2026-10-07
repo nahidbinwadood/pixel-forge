@@ -1,9 +1,19 @@
 {
-  "greeting": "Hi {name}, what are you creating today?",
-  "startScratch": "Start from scratch",
+  "greeting": "Hi {name},",
+  "greetingSub": "what are you creating today?",
   "uploadPhoto": "Upload a photo",
-  "pickTemplate": "Pick a template",
-  "tryAi": "Try AI",
-  "recent": "Recent designs",
-  "recentEmpty": "Your designs will show up here. The editor arrives in the next release."
+  "uploadPhotoDesc": "Add images to your library to edit them.",
+  "quickDrop": "Drop or paste an image",
+  "quickDropDesc": "It goes straight into your library.",
+  "quickDropActive": "Release to upload",
+  "uploading": "Uploading…",
+  "uploaded": "{name} uploaded. Preparing it now…",
+  "nextTitle": "Coming next: the editor",
+  "nextBody": "Crop, adjust and filter right here in your browser. Drag the light across the photo to preview the kind of edits it will make.",
+  "nextBadge": "Preview",
+  "library": "Your library",
+  "viewAll": "View all",
+  "libraryEmptyTitle": "Your library is empty",
+  "libraryEmptyBody": "Uploads you add appear here, ready for the editor.",
+  "processing": "Processing…"
 }

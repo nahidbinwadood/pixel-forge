@@ -1,21 +1,28 @@
 import { HeadBucketCommand } from "@aws-sdk/client-s3";
 import { prisma } from "@pixelforge/db";
+import { DatabaseIcon, HardDriveIcon, LayersIcon, ZapIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { ReactNode } from "react";
 import { redis, uploadsQueue } from "@/lib/redis";
 import { s3 } from "@/lib/storage";
+import { HealthCard } from "../_components/health-card";
 
 export const dynamic = "force-dynamic";
 
 interface Check {
   name: string;
+  icon: ReactNode;
   ok: boolean;
   ms: number;
   detail?: string;
 }
 
-async function check(name: string, fn: () => Promise<string | undefined>, timeoutMs = 3_000): Promise<Check> {
+async function check(
+  name: string,
+  icon: ReactNode,
+  fn: () => Promise<string | undefined>,
+  timeoutMs = 3_000,
+): Promise<Check> {
   const start = performance.now();
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
@@ -25,10 +32,11 @@ async function check(name: string, fn: () => Promise<string | undefined>, timeou
         timer = setTimeout(() => reject(new Error(`timed out after ${timeoutMs} ms`)), timeoutMs);
       }),
     ]);
-    return { name, ok: true, ms: Math.round(performance.now() - start), detail };
+    return { name, icon, ok: true, ms: Math.round(performance.now() - start), detail };
   } catch (e) {
     return {
       name,
+      icon,
       ok: false,
       ms: Math.round(performance.now() - start),
       detail: e instanceof Error ? e.message : String(e),
@@ -39,39 +47,46 @@ async function check(name: string, fn: () => Promise<string | undefined>, timeou
 }
 
 export default async function AdminHealthPage() {
-  const t = await getTranslations("admin");
-  const checks = await Promise.all([
-    check("Postgres", async () => {
+  const [t, ...checks] = await Promise.all([
+    getTranslations("admin"),
+    check("Postgres", <DatabaseIcon />, async () => {
       await prisma.$queryRaw`SELECT 1`;
       return undefined;
     }),
-    check("Redis", async () => redis.ping()),
-    check("Storage (S3)", async () => {
+    check("Redis", <ZapIcon />, async () => redis.ping()),
+    check("Storage (S3)", <HardDriveIcon />, async () => {
       await s3.send(new HeadBucketCommand({ Bucket: process.env.S3_BUCKET_UPLOADS ?? "pixelforge-uploads" }));
       return undefined;
     }),
-    check("Uploads queue", async () => {
+    check("Uploads queue", <LayersIcon />, async () => {
       const c = await uploadsQueue.getJobCounts("waiting", "active", "delayed", "failed", "completed");
       return Object.entries(c)
         .map(([k, v]) => `${k}: ${v}`)
         .join(" · ");
     }),
   ]);
+  const up = checks.filter((c) => c.ok).length;
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      {checks.map((c) => (
-        <Card key={c.name}>
-          <CardHeader className="flex flex-row items-center justify-between gap-2">
-            <CardTitle className="text-base">{c.name}</CardTitle>
-            <Badge variant={c.ok ? "secondary" : "destructive"}>{c.ok ? t("ok") : t("down")}</Badge>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-1 text-sm text-muted-foreground">
-            <span className="tabular-nums">{c.ms} ms</span>
-            {c.detail && <span className="break-words">{c.detail}</span>}
-          </CardContent>
-        </Card>
-      ))}
+    <div className="flex flex-col gap-4">
+      <p className="text-sm text-text-2">{t("servicesUp", { up, total: checks.length })}</p>
+      <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        {checks.map((c, i) => (
+          <li key={c.name}>
+            <HealthCard
+              index={i}
+              name={c.name}
+              icon={c.icon}
+              ok={c.ok}
+              ms={c.ms}
+              detail={c.detail}
+              okLabel={t("ok")}
+              downLabel={t("down")}
+              latencyLabel={t("latency")}
+            />
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

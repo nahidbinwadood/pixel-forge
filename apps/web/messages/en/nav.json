@@ -10,5 +10,22 @@
   "dark": "Dark",
   "system": "System",
   "skip": "Skip to content",
-  "menu": "Menu"
+  "menu": "Menu",
+  "main": "Main navigation",
+  "create": "Create",
+  "search": "Search or jump to…",
+  "searchShort": "Search",
+  "creditsWord": "{count, plural, one {credit} other {credits}}",
+  "creditsOf": "{balance} of {allowance} monthly credits left",
+  "palette": {
+    "title": "Command palette",
+    "description": "Jump to a page or run an action",
+    "placeholder": "Type a page or action…",
+    "empty": "Nothing matches. Try “uploads” or “theme”.",
+    "goTo": "Go to",
+    "actions": "Actions",
+    "toggleTheme": "Switch to {mode} theme",
+    "upload": "Upload a photo"
+  },
+  "pageError": "This page couldn't load. Your work is safe. Try again, or come back in a moment."
 }

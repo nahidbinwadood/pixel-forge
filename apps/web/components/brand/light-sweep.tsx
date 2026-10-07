@@ -157,7 +157,7 @@ export function LightSweep({
                 onClick={() => setPresetId(p.id)}
                 whileTap={{ scale: 0.95 }}
                 className={cn(
-                  "relative rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
+                  "relative isolate rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
                   active ? "border-transparent text-aurora-ink" : "text-text-2 hover:text-foreground",
                 )}
               >

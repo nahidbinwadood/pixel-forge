@@ -20,15 +20,22 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { authClient } from "@/lib/auth-client";
 
-export function UserMenu(props: { name: string; email: string; image: string | null; isAdmin: boolean }) {
+export function UserMenu(props: {
+  name: string;
+  email: string;
+  image: string | null;
+  isAdmin: boolean;
+  /** Shown in the menu on small screens, where the top-bar credit meter is hidden. */
+  creditsLabel?: string;
+}) {
   const t = useTranslations("nav");
   const { theme, setTheme } = useTheme();
   const initials = (props.name || props.email).slice(0, 2).toUpperCase();
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="rounded-full focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none">
-        <Avatar className="size-8">
+      <DropdownMenuTrigger className="group rounded-full p-0.5 transition-[background] hover:bg-aurora focus-visible:bg-aurora focus-visible:outline-none data-[state=open]:bg-aurora">
+        <Avatar className="size-8 ring-2 ring-background">
           {props.image && <AvatarImage src={props.image} alt="" />}
           <AvatarFallback>{initials}</AvatarFallback>
         </Avatar>
@@ -38,6 +45,9 @@ export function UserMenu(props: { name: string; email: string; image: string | n
         <DropdownMenuLabel className="flex flex-col">
           <span className="truncate">{props.name}</span>
           <span className="truncate text-xs font-normal text-muted-foreground">{props.email}</span>
+          {props.creditsLabel && (
+            <span className="mt-1 font-mono text-xs font-normal text-text-2 sm:hidden">{props.creditsLabel}</span>
+          )}
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>

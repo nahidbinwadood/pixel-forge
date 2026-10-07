@@ -103,3 +103,4 @@ Acceptance criteria are demoable · `pnpm check` and `pnpm build` are green · t
 - After editing `schema.prisma`, run `pnpm db:migrate` (it also regenerates). A stale client makes Better Auth fail with "schema mismatch".
 - On Windows, stopping a backgrounded `pnpm dev` can leave `next` alive on :3000, and Playwright then reuses the stale server. Kill it.
 - The S3 client must keep `requestChecksumCalculation: "WHEN_REQUIRED"`, or browser uploads fail with `BadDigest`.
+- Don't put `loading.tsx` above a layout that calls `notFound()`/`redirect()` for authorization (e.g. `(app)/admin`). The Suspense boundary starts streaming with HTTP 200 first, which leaks that the route exists. Keep `loading.tsx` per page segment.

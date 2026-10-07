@@ -1,90 +1,122 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
+import { MailIcon } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
-import { AuthForm, nextPath } from "@/components/auth-form";
+import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { AuthCard, AuthDivider, AuthNotice, authErrorKind, nextPath } from "@/components/auth-form";
+import { Form } from "@/components/form/form";
+import { FormInput } from "@/components/form/form-input";
+import { FormPassword } from "@/components/form/form-password";
+import { FormRootError, FormSubmit } from "@/components/form/form-submit";
 import { GoogleButton } from "@/components/google-button";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 
 export function SignInForm({ google }: { google: boolean }) {
   const t = useTranslations("auth");
-  const [email, setEmail] = useState("");
-  const [linkMsg, setLinkMsg] = useState<string>();
+  const schema = useMemo(
+    () =>
+      z.object({
+        email: z.email(t("validation.email")),
+        password: z.string().min(1, t("validation.password")),
+      }),
+    [t],
+  );
+  type Values = z.infer<typeof schema>;
+  const form = useForm<Values>({ resolver: zodResolver(schema), defaultValues: { email: "", password: "" } });
+  const [linkState, setLinkState] = useState<"idle" | "sending" | "sent">("idle");
+
+  async function onSubmit(values: Values) {
+    const { error } = await authClient.signIn.email(values);
+    if (!error) {
+      // 2FA users are redirected to /two-factor by the client plugin before this resolves.
+      window.location.assign(nextPath());
+      return;
+    }
+    const kind = authErrorKind(error);
+    form.setError("root", {
+      message:
+        kind === "rateLimited"
+          ? t("rateLimited")
+          : kind === "forbidden"
+            ? (error.message ?? t("genericError"))
+            : t("invalidCredentials"),
+    });
+  }
 
   async function sendMagicLink() {
-    if (!email) return;
-    const { error } = await authClient.signIn.magicLink({ email, callbackURL: nextPath() });
-    setLinkMsg(error?.status === 429 ? t("rateLimited") : t("magicLinkSent"));
+    if (!(await form.trigger("email"))) {
+      form.setFocus("email");
+      return;
+    }
+    setLinkState("sending");
+    const { error } = await authClient.signIn.magicLink({ email: form.getValues("email"), callbackURL: nextPath() });
+    if (error && authErrorKind(error) === "rateLimited") {
+      form.setError("root", { message: t("rateLimited") });
+      setLinkState("idle");
+      return;
+    }
+    setLinkState("sent");
   }
 
   return (
-    <AuthForm
+    <AuthCard
       title={t("signInTitle")}
-      submitLabel={t("signIn")}
-      onSubmit={async (data) => {
-        const { error } = await authClient.signIn.email({
-          email: String(data.get("email")),
-          password: String(data.get("password")),
-        });
-        if (!error) {
-          // 2FA users are redirected to /two-factor by the client plugin before this resolves.
-          window.location.assign(nextPath());
-          return;
-        }
-        if (error.status === 429) return t("rateLimited");
-        if (error.status === 403) return error.message;
-        return t("invalidCredentials");
-      }}
+      subtitle={t("signInSubtitle")}
       footer={
-        <div className="flex flex-col gap-3 text-sm">
-          <div className="flex items-center gap-3 text-muted-foreground">
-            <span className="h-px flex-1 bg-border" />
-            or
-            <span className="h-px flex-1 bg-border" />
-          </div>
-          {google && <GoogleButton />}
-          <Button type="button" variant="outline" className="w-full" onClick={sendMagicLink} disabled={!email}>
-            {t("magicLink")}
-          </Button>
-          {linkMsg && (
-            <p role="status" className="text-muted-foreground">
-              {linkMsg}
-            </p>
-          )}
-          <p className="text-muted-foreground">
-            {t("noAccount")}{" "}
-            <Link className="font-medium text-foreground underline-offset-4 hover:underline" href="/sign-up">
-              {t("signUp")}
-            </Link>
-          </p>
-        </div>
+        <p className="text-text-2">
+          {t("noAccount")}{" "}
+          <Link className="font-medium text-primary underline-offset-4 hover:underline" href="/sign-up">
+            {t("signUp")}
+          </Link>
+        </p>
       }
     >
-      <div className="grid gap-2">
-        <Label htmlFor="email">{t("email")}</Label>
-        <Input
-          id="email"
-          name="email"
-          type="email"
-          autoComplete="email"
-          required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </div>
-      <div className="grid gap-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="password">{t("password")}</Label>
-          <Link href="/forgot-password" className="text-sm text-muted-foreground underline-offset-4 hover:underline">
-            {t("forgot")}
-          </Link>
+      <div className="flex flex-col gap-5">
+        {google && (
+          <>
+            <GoogleButton />
+            <AuthDivider label={t("or")} />
+          </>
+        )}
+        <Form form={form} onSubmit={onSubmit}>
+          <FormInput<Values> name="email" label={t("email")} type="email" autoComplete="email" />
+          <div className="grid gap-2">
+            <FormPassword<Values> name="password" label={t("password")} autoComplete="current-password" />
+            <Link
+              href="/forgot-password"
+              className="justify-self-end text-sm text-text-2 underline-offset-4 hover:text-foreground hover:underline"
+            >
+              {t("forgot")}
+            </Link>
+          </div>
+          <FormRootError />
+          <FormSubmit className="w-full">{t("signIn")}</FormSubmit>
+        </Form>
+
+        <AuthDivider label={t("or")} />
+        <div className="grid gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            className="w-full"
+            loading={linkState === "sending"}
+            onClick={sendMagicLink}
+          >
+            {linkState !== "sending" && <MailIcon aria-hidden />}
+            {t("magicLink")}
+          </Button>
+          {linkState === "sent" ? (
+            <AuthNotice>{t("magicLinkSent")}</AuthNotice>
+          ) : (
+            <p className="text-xs text-muted-foreground">{t("magicLinkHint")}</p>
+          )}
         </div>
-        <Input id="password" name="password" type="password" autoComplete="current-password" required />
       </div>
-    </AuthForm>
+    </AuthCard>
   );
 }

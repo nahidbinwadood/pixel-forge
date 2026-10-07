@@ -13,19 +13,23 @@ test("admin can grant credits, manage a flag, and see system health", async ({ p
   await page.goto("/sign-up");
   await page.getByLabel("Name").fill("Grace Admin");
   await page.getByLabel("Email").fill(email);
-  await page.getByLabel("Password").fill("correct-horse-battery");
+  await page.getByLabel("Password", { exact: true }).fill("Correct-horse-9!");
   await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page).toHaveURL(/\/home$/);
+  await expect(page).toHaveURL(/\/home$/, { timeout: 30_000 }); // first dev compile of /home is slow
   sql(`UPDATE "User" SET role = 'admin' WHERE email = '${email}';`);
 
   // Users: find self, grant 5 credits (30 free + 5 = 35)
   await page.goto(`/admin?q=${encodeURIComponent(email)}`);
-  const grant = page.getByLabel(`Grant credits: ${email}`);
+  const manage = page.getByRole("menuitem", { name: "Manage user" });
   await expect(async () => {
-    await grant.fill("5");
-    await expect(page.getByRole("button", { name: "Grant credits" })).toBeEnabled({ timeout: 1_000 });
+    await page.getByRole("button", { name: `Actions for ${email}` }).click();
+    await expect(manage).toBeVisible({ timeout: 1_000 });
   }).toPass();
-  await page.getByRole("button", { name: "Grant credits" }).click();
+  await manage.click();
+  await page.getByLabel(`Grant credits: ${email}`).fill("5");
+  await page.getByRole("dialog").getByRole("button", { name: "Grant credits" }).click();
+  await expect(page.getByText("Updated")).toBeVisible();
+  await page.keyboard.press("Escape"); // the open panel hides the table from the accessibility tree
   await expect(page.getByRole("row", { name: new RegExp(email) })).toContainText("35", { timeout: 10_000 });
 
   // Flags: create, enable, and see it reflected in the public flags endpoint

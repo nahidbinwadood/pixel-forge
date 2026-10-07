@@ -1,6 +1,11 @@
 # Progress
 
-## Status: Phase 1 complete. Awaiting approval for Phase 2 (Core Editor MVP).
+## Status: Phase 1 + Aurora Studio redesign complete. Next: Phase 2 (Core Editor MVP).
+
+### Done (Design redesign, 2026-10-07)
+- Aurora Studio design system, form component library, password policy, Framer Motion everywhere, all existing screens redesigned. See `docs/design/CHANGELOG.md`.
+- Verified: lint ✓, typecheck ✓, unit 21/21 ✓, build ✓, E2E 7/7 ✓, 88 after-screenshots reviewed.
+
 
 ### Done (Phase 1: Foundation, 2026-10-07)
 - **Auth (Better Auth):** email+password (min 10 chars), Google (enabled when env set), magic link, TOTP 2FA with backup codes, password reset (1 h, revokes other sessions), email verification, rate limits (sign-in 5/15 min). Banned and deleted accounts can't start sessions.
