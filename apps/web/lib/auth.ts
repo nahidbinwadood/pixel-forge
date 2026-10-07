@@ -6,7 +6,8 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { APIError, createAuthMiddleware } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { magicLink, twoFactor } from "better-auth/plugins";
-import { sendEmail } from "./email";
+import { magicLinkTemplate, resetPasswordTemplate, verifyEmailTemplate } from "@/emails/templates";
+import { sendEmail, sendWelcomeEmail } from "./email";
 
 const google =
   process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
@@ -33,14 +34,18 @@ export const auth = betterAuth({
     requireEmailVerification: false,
     resetPasswordTokenExpiresIn: 60 * 60,
     revokeSessionsOnPasswordReset: true,
-    sendResetPassword: ({ user, url }) =>
-      sendEmail({ to: user.email, subject: `Reset your ${APP_NAME} password`, text: `Reset your password: ${url}` }),
+    sendResetPassword: ({ user, url }) => {
+      const { subject, html, text } = resetPasswordTemplate(url);
+      return sendEmail({ to: user.email, subject, html, text });
+    },
   },
   emailVerification: {
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
-    sendVerificationEmail: ({ user, url }) =>
-      sendEmail({ to: user.email, subject: `Verify your ${APP_NAME} email`, text: `Verify your email: ${url}` }),
+    sendVerificationEmail: ({ user, url }) => {
+      const { subject, html, text } = verifyEmailTemplate(url);
+      return sendEmail({ to: user.email, subject, html, text });
+    },
   },
   socialProviders: google,
   account: { accountLinking: { enabled: true, trustedProviders: ["google"] } },
@@ -108,14 +113,17 @@ export const auth = betterAuth({
               },
             }),
           ]);
+          void sendWelcomeEmail(user.email, user.name);
         },
       },
     },
   },
   plugins: [
     magicLink({
-      sendMagicLink: ({ email, url }) =>
-        sendEmail({ to: email, subject: `Your ${APP_NAME} sign-in link`, text: `Sign in: ${url}` }),
+      sendMagicLink: ({ email, url }) => {
+        const { subject, html, text } = magicLinkTemplate(url);
+        return sendEmail({ to: email, subject, html, text });
+      },
     }),
     twoFactor({ issuer: APP_NAME }),
     nextCookies(), // must be last

@@ -1,17 +1,17 @@
 import { APP_NAME } from "@pixelforge/shared";
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Logo } from "@/components/brand/logo";
 import { ThemeToggle } from "./hero-theme-toggle";
 
-/** Footer: brand + columns + giant wordmark. Pages that don't exist yet are plain muted text marked "soon". */
+/** Footer: brand + columns + giant wordmark. */
 export async function SiteFooter() {
   const [t, nav] = await Promise.all([getTranslations("landing.footer"), getTranslations("landing.nav")]);
   const year = new Date().getFullYear();
-  const soon = (label: string) => (
-    <span className="flex items-center gap-2 text-muted-foreground">
+  const link = (href: string, label: string) => (
+    <Link href={href} className="text-text-2 transition-colors hover:text-foreground">
       {label}
-      <span className="rounded-full border px-1.5 py-px font-mono text-[10px]">{t("soon")}</span>
-    </span>
+    </Link>
   );
 
   return (
@@ -36,17 +36,20 @@ export async function SiteFooter() {
                 {nav(key)}
               </a>
             ))}
+            {link("/pricing", t("pricing"))}
           </nav>
           <div className="grid content-start gap-3 text-sm lg:col-span-2">
             <h2 className="font-sans text-sm font-semibold">{t("company")}</h2>
-            {soon(t("about"))}
-            {soon(t("contact"))}
+            {link("/about", t("about"))}
+            {link("/contact", t("contact"))}
           </div>
           <div className="grid content-start gap-3 text-sm lg:col-span-3">
             <h2 className="font-sans text-sm font-semibold">{t("legal")}</h2>
-            {soon(t("terms"))}
-            {soon(t("privacy"))}
-            {soon(t("contentPolicy"))}
+            {link("/terms", t("terms"))}
+            {link("/privacy", t("privacy"))}
+            {link("/cookies", t("cookiesPolicy"))}
+            {link("/dmca", t("dmca"))}
+            {link("/ai-policy", t("aiPolicy"))}
           </div>
         </div>
 

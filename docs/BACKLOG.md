@@ -18,3 +18,18 @@ Items deferred out of a phase or referenced by a TODO in code. Format: `B-<n> ·
 - B-14 · Sentry wiring (web + worker) · Phase 11
 - B-15 · Monthly credit grant cron (signup grant exists; recurring grant does not) · Phase 4
 - B-16 · Service worker + offline caching · Phase 2 (with editor offline mode)
+- B-A1-1 · Full-resolution export: load each image's original (not the 1600 px preview) when exporting above preview size · Phase 6
+- B-A1-2 · Purge designs that sit in trash for 30 days (worker cron) + a Trash view to restore them · Phase 3
+- B-A1-3 · Multi-page designs in the editor UI (the document model already supports pages; the UI edits page 1) · Phase 6
+- B-A1-4 · Sticker/stock library in the Elements panel (sticker nodes render as placeholders until then) · Phase 3
+- B-10, B-11, B-15 · done in Phase 4 as worker crons (`apps/worker/src/cron/*`, repeatable BullMQ jobs on queue `maintenance`)
+- B-17 · Seed / reproducible generations once the image provider supports it (ASSUMPTIONS A2-7) · V2
+- B-18 · "Credits low" email when a charge leaves the balance under ~20% of the plan allowance (needs the A4 email helper) · Phase 5
+- B-19 · Refine-mask brush for background removal (PRD US9.2) and a dedicated matting model behind `editImage` · Phase 6
+- B-20 · Purge job skips users whose projects live in a shared team workspace (FK on `Project.creator`); decide reassign-vs-delete when Teams land · Phase 9
+- ~~B-21~~ (done at merge, fires once when a charge crosses 5) · Wire `sendLowCreditsEmail(userId)` (`apps/web/lib/email.ts`) into the AI job charge path · Phase 4 · the email helper exists and is tested; A2's credit-debit code doesn't exist yet in this branch to call it from
+- B-22 · Keep `apps/web/lib/billing/plan-pricing.ts`'s display prices in sync with the real Stripe Price amounts once `STRIPE_PRICE_*` env vars are set for real (or fetch `stripe.prices.retrieve` server-side instead) · Phase 5 rollout
+- B-23 · Swap `apps/web/instrumentation.ts`'s dependency-free envelope POST for the real `@sentry/nextjs` SDK once a Sentry project exists · Phase 11 · avoids the SDK's build-time source-map-upload plugin failing with no auth token configured
+- B-24 · Real SMTP send is untested in this sandbox (no SMTP_HOST/USER/PASS available here) — verify against the real provider once creds are in `.env` · before beta · console-fallback path and all templates are unit-tested
+- B-25 · Dedicated `CONTACT_EMAIL` env var instead of reusing `EMAIL_FROM` as the contact-form inbox (`apps/web/app/(site)/contact/actions.ts`) · when the two addresses need to differ
+- B-26 · Move `apps/web/lib/billing/bundles.ts`'s credit-bundle sizes/prices into `packages/shared/src/plans.ts` if a second consumer (admin UI, API) needs them · when needed

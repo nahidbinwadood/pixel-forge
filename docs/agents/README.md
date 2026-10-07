@@ -13,6 +13,13 @@ The user asked (2026-10-07) to finish the whole project with parallel agents. Th
 
 Every agent follows [RULES.md](RULES.md). Ports 3001–3005, databases `pixelforge_a1`…`a5`, Redis DBs 1–5.
 
+## Machine load limits (added after 3 hard power-offs on 2026-10-07)
+The host is an i5-13500T with 16 GB RAM, so running 5 agents at once overloaded it.
+- Run **2 agents at once** (user decision): A1 + A2, then A3 + A4, then A5. The heavy-command lock keeps peak load to a single build at a time. Running 2 at once still crashed the machine at 13:48: the power was cut instantly, with no bugcheck, which points to the PSU or adapter, or a thermal trip.
+- `~/.wslconfig` caps Docker at 3 GB RAM and 2 CPUs. The Windows max processor state is 80%, which also turns off turbo boost.
+- Heavy commands (`pnpm build`, Playwright, full `pnpm test`) run through `node .claude/heavy.mjs <cmd>`, a machine-wide lock. Playwright runs with `--workers=1`.
+- Don't leave `pnpm dev` running. Stop it as soon as you have finished testing in the browser.
+
 ## Merge (main session)
 1. Merge the branches in this order: A1 → A3 → A2 → A4 → A5. The editor document schema goes first because A3, A2 and A5 depend on it.
 2. Resolve conflicts in the `schema.prisma` blocks and the shared append-only files.
@@ -20,8 +27,14 @@ Every agent follows [RULES.md](RULES.md). Ports 3001–3005, databases `pixelfor
 4. Wire the cross-agent stubs: A5 moderation → `packages/ai`, A2 low-credit email → A4 helper, A3 "Use template" → editor.
 5. Update PROGRESS.md, then stop for approval.
 
-## Wave 2 (after wave 1 merges)
-Phase 6 (V2 editing + AI expansion) and Phase 7 (video). Briefs are written after the merge, against the real code.
+## Wave 2 (after A3 + A5 merge; 2 agents at a time)
+| Agent | Brief | Scope | Model |
+|---|---|---|---|
+| A6 | [A6-editor-v2.md](A6-editor-v2.md) | Phase 6a: layers/masks/blend, curves/HSL, brush, selection, multi-page, magic resize, versions, QR | opus |
+| A7 | [A7-video.md](A7-video.md) | Phase 7: browser-only video editor + Gemini captions | opus |
+| A8 | [A8-ai-business.md](A8-ai-business.md) | Phase 6b AI tools + Phase 10 brand kit, product photos, public API, analytics | sonnet |
+
+Order: A3 + A5 (resume) → A6 + A7 → A8 → final hardening + merge (main session). All agents target Vercel (RULES.md).
 
 ## Sessions
 Peer Claude sessions (see `ListAgents`) can take review or verification tasks over `SendMessage`. Build work runs in worktree subagents so that branches stay isolated.

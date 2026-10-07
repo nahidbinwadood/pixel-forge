@@ -31,7 +31,7 @@ jobs:
         with: { node-version: 22, cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: sed "s|^BETTER_AUTH_SECRET=.*|BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET|" .env.example > .env
-      - run: docker compose up -d --wait postgres redis s3
+      - run: docker compose up -d --wait postgres s3
       - run: docker compose up s3-init
       - run: pnpm db:deploy
       - run: pnpm exec playwright install --with-deps chromium

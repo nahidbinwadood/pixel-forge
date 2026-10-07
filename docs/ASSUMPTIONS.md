@@ -45,9 +45,52 @@ Answers from the kickoff (2026-10-07) plus defaults chosen where the brief left 
 | D31 | Redesign v2 (user feedback + references CherryMockup / cherrypdf / Picsart): Bricolage Grotesque replaces Clash Display; **light default**; pill buttons with solid violet primary (aurora reserved for transformation) | User disliked v1; references are light, airy, tight-grotesque |
 | D28 | PWA = manifest + icons, no service worker yet | Chromium installs without one. The SW ships with editor offline mode (PRD US3.5) |
 
+## Platform & billing decisions (agent A4, Phases 5 + 11)
+| # | Decision | Why |
+|---|---|---|
+| D-A4-1 | ⚠ Email is **SMTP via `nodemailer`**, not Resend/React Email (supersedes D16's email half) | The wave's only supplied creds are SMTP, not a Resend key. Templates are plain-TSX-shaped HTML built as escaped template strings in `emails/layout.ts`, not JSX via `renderToStaticMarkup` — Next's App Router bundler refuses to import `react-dom/server` anywhere in its module graph, even in a server-only lib three hops from a route handler |
+| D-A4-2 | Stripe is fully optional: `stripeEnabled = Boolean(STRIPE_SECRET_KEY)`. Prices are looked up per plan+interval (`STRIPE_PRICE_<PLAN>_<INTERVAL>`) and per credit bundle (`STRIPE_PRICE_CREDITS_<ID>`); a plan/interval with no price configured falls back to the pricing page's waitlist for just that plan, not billing as a whole | Matches the task's framing ("Stripe stays optional and degrades to the waitlist") without an all-or-nothing flag |
+| D-A4-3 | Webhook idempotency via a `WebhookEvent(id)` table keyed on the Stripe event id, inserted before processing | Stripe retries deliveries; a unique-constraint failure on the insert means "already handled" |
+| D-A4-4 | Credit bundle sizes/prices live in `apps/web/lib/billing/bundles.ts`, not `packages/shared/src/plans.ts` | plans.ts is limits + AI job credit costs only (CLAUDE.md); bundles are a billing-only concept with no other consumer yet (see BACKLOG B-26) |
+| D-A4-5 | Pricing-page display prices (`lib/billing/plan-pricing.ts`) are a small local illustrative table, not fetched from the configured Stripe Price objects | Avoids a Stripe API round-trip on every pricing-page render for a beta with no real prices set yet; must be kept in sync by hand once real prices exist (BACKLOG B-22) |
+| D-A4-6 | CSP (with a per-request nonce) lives in `apps/web/proxy.ts` alongside the pre-existing sign-in redirect, not a separate `middleware.ts` | Next.js 16 renamed the convention to `proxy.ts` and errors if both files exist — only found by actually running the app, not from reading the docs |
+| D-A4-7 | Sentry (`instrumentation.ts`) posts directly to the DSN's envelope HTTP endpoint instead of using `@sentry/nextjs` | That SDK's build-time source-map-upload plugin needs its own auth token and would make `pnpm build` fragile with no Sentry project configured; matches this repo's existing raw-fetch-over-SDK pattern (`lib/analytics.ts` → PostHog) |
+| D-A4-8 | `/api/v1/health`'s shallow check (`status: "ok"`) stays public; `?deep=1` requires admin and reports per-dependency status | The shallow form is what Playwright's `webServer.url` and uptime monitors need — it must never require auth. The deep form leaks infra details (bucket name, queue depth) |
+| D-A4-9 | Cookie consent (`app/(site)/_components/cookie-consent.tsx`) mounts once in the root layout, and `lib/analytics.ts`'s `track()` checks `localStorage` consent before calling PostHog | Analytics fires from (auth) and (app) pages too (signup, uploads), not just the public site, so the gate has to be global |
+
 ## Product assumptions
 - English only at launch. Desktop-first editor, and mobile gets browse + light edit only.
 - No mobile apps, no video editor, no community and no teams before the beta (Phases 7–9).
 - Stock content: Unsplash/Pexels APIs (attribution stored per asset), Google Fonts, and self-made or CC0 stickers. No Picsart assets of any kind.
 - Free-tier AI credit refill is **monthly**, and the amount lives in config.
 - User content is private by default. Nothing is public until Community (Phase 8).
+
+## Editor (A1)
+| # | Decision | Why |
+|---|---|---|
+| D-A1-1 | The document changes only through `editor-core` commands applied as Immer patches (history cap 100; rapid edits coalesce by key within 800 ms). The editor store is a small `useSyncExternalStore` store, not Zustand | One dependency fewer, and each panel re-renders only the slice it reads |
+| D-A1-2 | Autosave: PATCH `{document, revision}` 2 s after the last edit. A stale revision returns 409, and the client saves its version as a **copy** instead of overwriting. Unsaved edits are mirrored to IndexedDB for crash recovery | Never lose work, never clobber another tab |
+| D-A1-3 | Thumbnails: the client renders page 1 (≤ 480 px WebP) and PUTs it to `/api/v1/projects/:id/thumbnail`. The server stores it in S3 (≤ 512 KB, PNG/WebP/JPEG only) | Simplest correct option, no data URLs in the DB |
+| D-A1-4 | Free-plan users can preview premium filters in the editor, but export is blocked with the paywall message (US4.3) | Users see the value before the paywall |
+## AI layer decisions (agent A2, Phase 4)
+| # | Decision | Why |
+|---|---|---|
+| A2-1 | ⚠ **Gemini is the only real provider** (`AI_PROVIDER=mock\|gemini`), replacing D12's Replicate/Anthropic adapters. Defaults `gemini-3.8-flash` (text, moderation) and `gemini-3.1-flash-image` (images), overridable via `GEMINI_TEXT_MODEL` / `GEMINI_IMAGE_MODEL` | The user supplies only a Gemini key. `gemini` without a key is a config error (the UI says "not configured"), never a silent fallback to mock |
+| A2-2 | Background removal = Gemini image edit to "subject on pure white", then the worker flood-fills white connected to the border to transparent (feathered edge) | Gemini has no segmentation model. Border flood-fill keeps white inside the subject. Ceiling: white subjects touching the frame edge; a matting model is a V2 swap behind `editImage` (B-19) |
+| A2-3 | Moderation: prompts are checked in the web tier before any charge (Gemini JSON classifier + Gemini's own safety blocks); outputs are checked in the worker before storing. Blocked outputs end `blocked` and are refunded | PRD US10.1. A blocked prompt creates no job and charges nothing (422) |
+| A2-4 | Idempotency keys are stored as `<userId>:<key>` | One user's key can never replay another user's job |
+| A2-5 | "Save to library" moves an `ai_output` asset to `kind=upload` (tag `ai`, provenance kept in `license`) instead of copying it | No duplicate storage; Uploads and the editor see it like any upload |
+| A2-6 | The monthly top-up writes a ledger row even when the delta is 0 (dedupe `grant:YYYY-MM:user`, the same key as the signup grant) | Marks the month as done so a later run can't top up again after spending. Zero rows are hidden in usage history |
+| A2-7 | Text-to-image `seed` (PRD US10.1) is not offered | The Gemini image API exposes no seed (B-17) |
+| A2-8 | Job progress is honest: real status (queued/running) + elapsed time with an indeterminate bar, no invented percentages | Providers report no progress |
+
+## Vercel deployment (2026-10-07, user decision)
+| # | Decision | Why |
+|---|---|---|
+| D-V1 | ⚠ **Deploy target is Vercel only.** `apps/worker`, BullMQ and Redis are removed (supersedes D2, D11's worker half, D23's Redis upgrade path). Uploads and AI jobs run after the response via `after()` in the same function (`lib/jobs/run.ts`) with in-process retries | Vercel can't host a long-lived worker. One deployable, no extra services |
+| D-V2 | A job that outlives its function (`maxDuration` 300 s) is failed and refunded, lazily on the next poll (`getOwnJob`) or by the daily `cleanup` cron. Stuck uploads are retried by the same cron | No queue re-delivers lost work; this keeps credits honest. Upgrade: Vercel Queues / Inngest |
+| D-V3 | Crons = Vercel Cron → `GET /api/cron/[job]` guarded by `CRON_SECRET` (timing-safe). `cleanup-pending-assets` went from hourly to daily | Hobby allows at most one run per day per cron. Pending TTL is 24 h, so daily is enough |
+| D-V4 | App rate limits move from Redis to Postgres: atomic upsert into the existing `RateLimit` table, with keys prefixed `rl:` and pruned daily | No Redis to provision. Ceiling: one DB write per limited call; switch to Upstash if it shows in DB load |
+| D-V5 | Text-to-image variations run in parallel (`allSettled`); per-call timeout 60 s | Sequential variations could exceed 300 s |
+| D-V6 | Production builds run `prisma migrate deploy` (on `DATABASE_URL_UNPOOLED`); preview builds don't | A preview branch must never migrate the prod schema |
+| D-V7 | Storage stays S3-API (Cloudflare R2 in prod), not Vercel Blob. CSP now allows both `S3_ENDPOINT` and `PUBLIC_ASSET_BASE_URL` origins | No rewrite of the presigned-upload flow; R2 has no egress fees |

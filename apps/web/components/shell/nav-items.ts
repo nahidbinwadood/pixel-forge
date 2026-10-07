@@ -1,9 +1,18 @@
-import { HomeIcon, ImagesIcon, LayoutTemplateIcon, type LucideIcon, SettingsIcon, ShieldIcon } from "lucide-react";
+import {
+  HomeIcon,
+  ImagesIcon,
+  LayoutGridIcon,
+  LayoutTemplateIcon,
+  type LucideIcon,
+  SettingsIcon,
+  ShieldIcon,
+  SparklesIcon,
+} from "lucide-react";
 
 export interface NavItem {
   href: string;
   /** Key in messages/en/nav.json */
-  label: "home" | "templates" | "uploads" | "settings" | "admin";
+  label: "home" | "templates" | "projects" | "uploads" | "ai" | "settings" | "admin";
   icon: LucideIcon;
   adminOnly?: boolean;
 }
@@ -12,7 +21,9 @@ export interface NavItem {
 export const NAV_ITEMS: readonly NavItem[] = [
   { href: "/home", label: "home", icon: HomeIcon },
   { href: "/templates", label: "templates", icon: LayoutTemplateIcon },
+  { href: "/projects", label: "projects", icon: LayoutGridIcon },
   { href: "/uploads", label: "uploads", icon: ImagesIcon },
+  { href: "/ai", label: "ai", icon: SparklesIcon },
   { href: "/settings", label: "settings", icon: SettingsIcon },
   { href: "/admin", label: "admin", icon: ShieldIcon, adminOnly: true },
 ];

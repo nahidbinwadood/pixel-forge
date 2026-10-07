@@ -1,9 +1,8 @@
 import { HeadBucketCommand } from "@aws-sdk/client-s3";
 import { prisma } from "@pixelforge/db";
-import { DatabaseIcon, HardDriveIcon, LayersIcon, ZapIcon } from "lucide-react";
+import { DatabaseIcon, HardDriveIcon, LayersIcon } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import type { ReactNode } from "react";
-import { redis, uploadsQueue } from "@/lib/redis";
 import { s3 } from "@/lib/storage";
 import { HealthCard } from "../_components/health-card";
 
@@ -53,16 +52,16 @@ export default async function AdminHealthPage() {
       await prisma.$queryRaw`SELECT 1`;
       return undefined;
     }),
-    check("Redis", <ZapIcon />, async () => redis.ping()),
     check("Storage (S3)", <HardDriveIcon />, async () => {
       await s3.send(new HeadBucketCommand({ Bucket: process.env.S3_BUCKET_UPLOADS ?? "pixelforge-uploads" }));
       return undefined;
     }),
-    check("Uploads queue", <LayersIcon />, async () => {
-      const c = await uploadsQueue.getJobCounts("waiting", "active", "delayed", "failed", "completed");
-      return Object.entries(c)
-        .map(([k, v]) => `${k}: ${v}`)
-        .join(" · ");
+    check("Background jobs", <LayersIcon />, async () => {
+      const [uploads, ai] = await Promise.all([
+        prisma.asset.count({ where: { status: "processing" } }),
+        prisma.aIJob.count({ where: { status: { in: ["queued", "running"] } } }),
+      ]);
+      return `uploads processing: ${uploads} · AI jobs running: ${ai}`;
     }),
   ]);
   const up = checks.filter((c) => c.ok).length;
@@ -70,7 +69,7 @@ export default async function AdminHealthPage() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-text-2">{t("servicesUp", { up, total: checks.length })}</p>
-      <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
         {checks.map((c, i) => (
           <li key={c.name}>
             <HealthCard

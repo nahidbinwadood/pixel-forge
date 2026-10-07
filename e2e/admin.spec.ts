@@ -48,7 +48,7 @@ test("admin can grant credits, manage a flag, and see system health", async ({ p
   // Health: all dependencies up
   await page.goto("/admin/health");
   await expect(page.getByText("Down")).toHaveCount(0);
-  await expect(page.getByText("OK")).toHaveCount(4);
+  await expect(page.getByText("OK", { exact: true })).toHaveCount(3); // Postgres, storage, background jobs
 
   sql(`DELETE FROM "FeatureFlag" WHERE key = '${key}';`);
 });

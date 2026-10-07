@@ -89,6 +89,7 @@ model User {
   recents      RecentUse[]
   reports      Report[]      @relation("Reporter")
   auditLogs    AuditLog[]
+  invoices     Invoice[] // ==== A4 platform ====
 }
 
 model Session {
@@ -437,4 +438,39 @@ model AuditLog {
 
   @@index([actorId, createdAt])
   @@index([action, createdAt])
+}
+
+// ==== A4 platform (billing + waitlist + webhooks) ====
+
+/// Emails collected from the pricing page while a plan/bundle has no Stripe price configured.
+model WaitlistEntry {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  planId    String? // PlanId they were interested in, if any
+  source    String? // e.g. "pricing_page"
+  createdAt DateTime @default(now())
+}
+
+/// Mirror of Stripe invoices for the billing settings page. Populated by the webhook handler.
+model Invoice {
+  id                String   @id @default(cuid())
+  userId            String
+  stripeInvoiceId   String   @unique
+  amountDue         Int // cents
+  amountPaid        Int // cents
+  currency          String
+  status            String
+  hostedInvoiceUrl  String?
+  pdfUrl            String?
+  createdAt         DateTime @default(now())
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+/// Processed Stripe event ids, so webhook handling is idempotent on retry.
+model WebhookEvent {
+  id        String   @id // Stripe event id
+  type      String
+  createdAt DateTime @default(now())
 }

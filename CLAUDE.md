@@ -13,20 +13,20 @@ Product brief: @PROJECT_BRIEF.md · Decisions: @docs/ASSUMPTIONS.md · Status: @
 | | |
 |---|---|
 | `pnpm install` | install (Node ≥22, pnpm 11) |
-| `pnpm db:up` | Postgres :5432, Redis :6379, SeaweedFS S3 :8333 (buckets auto-created) |
+| `pnpm db:up` | Postgres :5432, SeaweedFS S3 :8333 (buckets auto-created) |
 | `pnpm db:migrate` / `pnpm db:seed` | Prisma migrate dev + generate / idempotent seed |
 | `pnpm db:deploy` | apply migrations non-interactively (CI/prod) |
 | `pnpm --filter @pixelforge/db generate` | regenerate the Prisma client after schema edits |
-| `pnpm dev` | web (http://localhost:3000) + worker |
-| `pnpm test:e2e` | Playwright; needs `pnpm db:up`; starts web + worker itself |
+| `pnpm dev` | web (http://localhost:3000); background jobs run inside it |
+| `pnpm test:e2e` | Playwright; needs `pnpm db:up`; starts web itself |
 | `pnpm check` | biome lint + typecheck (all packages) + vitest |
 | `pnpm format` | biome autofix |
 | `pnpm build` | production build |
 
 ## Folder map
 ```
-apps/web            Next.js: UI + /api/v1 route handlers + Better Auth
-apps/worker         BullMQ worker: upload validation (magic bytes), re-encode, thumbnails
+apps/web            Next.js: UI + /api/v1 route handlers + Better Auth + /api/cron (Vercel Cron)
+apps/web/lib/jobs   background work via after(): upload validation, re-encode, thumbnails, AI jobs, crons
 packages/db         Prisma schema/client/seed (client generated to packages/db/generated)
 packages/shared     APP_NAME, plans/credits config, shared zod schemas
 packages/editor-core  document model + migrate(); pure TS, no DOM, ≥90% test coverage
@@ -98,6 +98,11 @@ docs/               PRD, architecture, API spec, roadmap, risks, security, tests
 
 ## Definition of done
 Acceptance criteria are demoable · `pnpm check` and `pnpm build` are green · tests cover new logic · keyboard and screen-reader basics work · responsive · loading, empty, error and paywall states are handled · analytics event added (PRD event names) · PROGRESS.md updated · migration and seed updated · no secrets, no dead code, no unlinked TODOs.
+
+## Deploy target: Vercel (docs/DEPLOY.md)
+- No long-lived processes: no worker, no Redis, no in-memory state across requests. Background work goes through `lib/jobs/run.ts` (`after()`) and must finish within the route's `maxDuration` (≤ 300 s on Hobby).
+- Scheduled work = a handler in `app/api/cron/[job]/route.ts` + a schedule in `apps/web/vercel.json` (Hobby: at most daily). Jobs must be idempotent.
+- Rate limits: `rateLimit()` from `lib/rate-limit.ts` (Postgres).
 
 ## Gotchas (learned the hard way)
 - Never set `NODE_ENV` in `.env`; it breaks `next build`.
