@@ -1,0 +1,1685 @@
+openapi: 3.1.0
+info:
+  title: PixelForge API
+  version: 0.1.0-draft
+  description: |
+    MVP REST API (Phases 1–4), served by Next.js route handlers under `/api/v1`.
+
+    **Authentication.** Better Auth owns every route under `/api/auth/*`: sign-up, sign-in
+    (email+password, Google, magic link), sign-out, email verification, password reset and
+    TOTP 2FA. Those routes are not described here. A successful sign-in sets an httpOnly
+    session cookie, which every endpoint below requires unless it is marked `security: []`.
+
+    **Conventions.**
+    - Request and response bodies are JSON and validated with zod. Unknown fields are rejected.
+    - List endpoints use cursor pagination: `?cursor=<opaque>&limit=<1..100>` returns
+      `{ items, nextCursor }`, and `nextCursor` is null on the last page.
+    - Errors always use the `Error` schema. Stable error codes include `UNAUTHENTICATED`,
+      `FORBIDDEN`, `NOT_FOUND`, `VALIDATION_FAILED`, `CONFLICT`, `INSUFFICIENT_CREDITS`,
+      `PLAN_REQUIRED`, `RATE_LIMITED`, `CONTENT_BLOCKED` and `INTERNAL`.
+    - Mutating requests must come from the app origin (Origin header check, see SECURITY.md).
+    - Timestamps are ISO-8601 UTC strings. IDs are cuid2 strings.
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Local
+  - url: https://app.pixelforge.example/api/v1
+    description: Production (placeholder)
+security:
+  - cookieAuth: []
+tags:
+  - name: Me
+  - name: Projects
+  - name: Uploads & Assets
+  - name: Folders
+  - name: Templates
+  - name: Content
+  - name: Favorites & Recents
+  - name: Search
+  - name: AI
+  - name: Credits & Plans
+  - name: Flags
+  - name: Admin
+  - name: System
+
+paths:
+  # ---------------------------------------------------------------- Me
+  /me:
+    get:
+      tags: [Me]
+      summary: Current user profile and settings
+      operationId: getMe
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+    patch:
+      tags: [Me]
+      summary: Update profile or settings
+      operationId: updateMe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UserUpdate" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/User" }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+    delete:
+      tags: [Me]
+      summary: Delete account (GDPR erasure)
+      description: |
+        Soft-deletes the account at once: sessions are revoked and content is hidden. A worker
+        job hard-deletes the DB rows and stored objects after a 30-day grace period. The user
+        must confirm with their current password, or with a recent re-auth for OAuth-only accounts.
+      operationId: deleteMe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [confirm]
+              properties:
+                confirm: { type: string, const: DELETE }
+                password: { type: string }
+      responses:
+        "202": { description: Deletion scheduled }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "401": { $ref: "#/components/responses/Unauthenticated" }
+  /me/export:
+    post:
+      tags: [Me]
+      summary: Request a data export (GDPR portability)
+      description: Queues a job that zips profile, projects (JSON) and originals, then emails a signed download link valid for 7 days. Limited to 1 request per 24 h.
+      operationId: exportMe
+      responses:
+        "202":
+          description: Export queued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId: { type: string }
+        "429": { $ref: "#/components/responses/RateLimited" }
+
+  # ---------------------------------------------------------------- Projects
+  /projects:
+    get:
+      tags: [Projects]
+      summary: List my projects (My Designs)
+      operationId: listProjects
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - { name: folderId, in: query, schema: { type: string } }
+        - { name: q, in: query, schema: { type: string, maxLength: 200 } }
+        - name: sort
+          in: query
+          schema: { type: string, enum: [updated, created, name], default: updated }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProjectSummaryPage" }
+    post:
+      tags: [Projects]
+      summary: Create a project (blank or from a size preset)
+      operationId: createProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProjectCreate" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Project" }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "402": { $ref: "#/components/responses/PlanRequired" }
+  /projects/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      tags: [Projects]
+      summary: Get a project including its document
+      operationId: getProject
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Project" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    patch:
+      tags: [Projects]
+      summary: Update a project (autosave target)
+      description: |
+        Optimistic concurrency: send the `revision` you last read. A stale revision returns
+        409 with the current revision, and the client then reloads or forks. Autosave calls
+        this every few seconds while the document is dirty.
+      operationId: updateProject
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/ProjectUpdate" }
+      responses:
+        "200":
+          description: Saved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [revision, updatedAt]
+                properties:
+                  revision: { type: integer }
+                  updatedAt: { type: string, format: date-time }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+        "413": { description: Document exceeds the size limit (5 MB JSON) }
+    delete:
+      tags: [Projects]
+      summary: Move a project to trash (soft delete, purged after 30 days)
+      operationId: deleteProject
+      responses:
+        "204": { description: Deleted }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /projects/{id}/versions:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      tags: [Projects]
+      summary: List saved versions
+      operationId: listProjectVersions
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, nextCursor]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/ProjectVersion" }
+                  nextCursor: { type: [string, "null"] }
+    post:
+      tags: [Projects]
+      summary: Snapshot the current document as a named version
+      operationId: createProjectVersion
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                label: { type: string, maxLength: 80 }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ProjectVersion" }
+  /projects/{id}/duplicate:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      tags: [Projects]
+      summary: Duplicate a project
+      operationId: duplicateProject
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Project" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ---------------------------------------------------------------- Uploads & Assets
+  /uploads:
+    post:
+      tags: [Uploads & Assets]
+      summary: Request a presigned upload URL
+      description: |
+        Creates an `Asset` row in `pending` state and returns a presigned S3 PUT URL that
+        expires in 10 minutes. The URL is bound to the declared content type and length.
+        Allowed types are image/jpeg, image/png, image/webp, image/gif and image/heic.
+        SVG is rejected (see SECURITY.md). The maximum size is plan-dependent (from `plans.ts`).
+      operationId: createUpload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [filename, contentType, size]
+              properties:
+                filename: { type: string, maxLength: 255 }
+                contentType:
+                  type: string
+                  enum: [image/jpeg, image/png, image/webp, image/gif, image/heic]
+                size: { type: integer, minimum: 1 }
+                folderId: { type: string }
+      responses:
+        "201":
+          description: Presigned
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [assetId, uploadUrl, expiresAt]
+                properties:
+                  assetId: { type: string }
+                  uploadUrl: { type: string, format: uri }
+                  headers:
+                    type: object
+                    additionalProperties: { type: string }
+                    description: Headers the client must send with the PUT.
+                  expiresAt: { type: string, format: date-time }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "402": { $ref: "#/components/responses/PlanRequired" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /uploads/{assetId}/complete:
+    parameters:
+      - { name: assetId, in: path, required: true, schema: { type: string } }
+    post:
+      tags: [Uploads & Assets]
+      summary: Confirm the upload finished and queue processing
+      description: Queues the worker to check magic bytes, re-encode with sharp (which strips EXIF/GPS), and create variants (thumb, preview). The asset becomes `ready` or `rejected`.
+      operationId: completeUpload
+      responses:
+        "202":
+          description: Processing
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Asset" }
+        "404": { $ref: "#/components/responses/NotFound" }
+        "409": { $ref: "#/components/responses/Conflict" }
+  /assets:
+    get:
+      tags: [Uploads & Assets]
+      summary: List my uploads
+      operationId: listAssets
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+        - { name: folderId, in: query, schema: { type: string } }
+        - name: kind
+          in: query
+          schema: { type: string, enum: [upload, ai_output, export] }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AssetPage" }
+  /assets/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    delete:
+      tags: [Uploads & Assets]
+      summary: Delete an upload and its stored variants
+      operationId: deleteAsset
+      responses:
+        "204": { description: Deleted }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ---------------------------------------------------------------- Folders
+  /folders:
+    get:
+      tags: [Folders]
+      summary: List my folders
+      operationId: listFolders
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Folder" }
+    post:
+      tags: [Folders]
+      summary: Create a folder
+      operationId: createFolder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FolderInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Folder" }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+  /folders/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    patch:
+      tags: [Folders]
+      summary: Rename or move a folder
+      operationId: updateFolder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FolderInput" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Folder" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [Folders]
+      summary: Delete a folder (its contents move to the root)
+      operationId: deleteFolder
+      responses:
+        "204": { description: Deleted }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ---------------------------------------------------------------- Templates
+  /templates:
+    get:
+      tags: [Templates]
+      summary: Browse and search published templates
+      operationId: listTemplates
+      security: [{}, { cookieAuth: [] }]
+      parameters:
+        - { name: q, in: query, schema: { type: string, maxLength: 200 } }
+        - { name: category, in: query, schema: { type: string }, description: Category slug }
+        - { name: size, in: query, schema: { type: string }, description: "Size preset key, e.g. instagram_post" }
+        - { name: style, in: query, schema: { type: string } }
+        - { name: color, in: query, schema: { type: string, pattern: "^#[0-9a-fA-F]{6}$" } }
+        - { name: premium, in: query, schema: { type: boolean } }
+        - name: sort
+          in: query
+          schema: { type: string, enum: [trending, newest, popular], default: trending }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TemplatePage" }
+  /templates/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      tags: [Templates]
+      summary: Template detail (preview, sizes, premium flag)
+      operationId: getTemplate
+      security: [{}, { cookieAuth: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Template" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /templates/{id}/use:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      tags: [Templates]
+      summary: Create a new project from a template
+      description: Premium templates require a plan that includes them. Free users get 402 PLAN_REQUIRED, and the UI shows the paywall.
+      operationId: useTemplate
+      responses:
+        "201":
+          description: Project created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Project" }
+        "402": { $ref: "#/components/responses/PlanRequired" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /template-categories:
+    get:
+      tags: [Templates]
+      summary: List template categories
+      operationId: listTemplateCategories
+      security: [{}, { cookieAuth: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/TemplateCategory" }
+
+  # ---------------------------------------------------------------- Content libraries
+  /stickers:
+    get:
+      tags: [Content]
+      summary: Search stickers and elements
+      operationId: listStickers
+      parameters:
+        - { name: q, in: query, schema: { type: string, maxLength: 200 } }
+        - { name: category, in: query, schema: { type: string } }
+        - { name: premium, in: query, schema: { type: boolean } }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LibraryItemPage" }
+  /fonts:
+    get:
+      tags: [Content]
+      summary: List available fonts (Google Fonts subset plus the user's custom fonts)
+      operationId: listFonts
+      parameters:
+        - { name: q, in: query, schema: { type: string, maxLength: 100 } }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, nextCursor]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Font" }
+                  nextCursor: { type: [string, "null"] }
+  /stock/photos:
+    get:
+      tags: [Content]
+      summary: Search stock photos (server-side proxy to Unsplash/Pexels)
+      description: The proxy keeps provider API keys server-side. Results are cached in Redis for 1 h, and attribution is returned per item and must be stored when the photo is inserted.
+      operationId: searchStockPhotos
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 1, maxLength: 200 } }
+        - name: orientation
+          in: query
+          schema: { type: string, enum: [landscape, portrait, square] }
+        - { name: color, in: query, schema: { type: string } }
+        - { name: page, in: query, schema: { type: integer, minimum: 1, default: 1 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/StockPhoto" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+
+  # ---------------------------------------------------------------- Favorites & Recents
+  /favorites:
+    get:
+      tags: [Favorites & Recents]
+      summary: List my favorites
+      operationId: listFavorites
+      parameters:
+        - name: type
+          in: query
+          schema: { $ref: "#/components/schemas/FavoriteType" }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, nextCursor]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Favorite" }
+                  nextCursor: { type: [string, "null"] }
+    post:
+      tags: [Favorites & Recents]
+      summary: Add a favorite (idempotent)
+      operationId: addFavorite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FavoriteRef" }
+      responses:
+        "201":
+          description: Added
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Favorite" }
+    delete:
+      tags: [Favorites & Recents]
+      summary: Remove a favorite (idempotent)
+      operationId: removeFavorite
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FavoriteRef" }
+      responses:
+        "204": { description: Removed }
+  /recents:
+    get:
+      tags: [Favorites & Recents]
+      summary: Recently used templates, stickers, fonts and assets
+      operationId: listRecents
+      parameters:
+        - name: type
+          in: query
+          schema: { $ref: "#/components/schemas/FavoriteType" }
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 50, default: 20 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/FavoriteRef" }
+
+  # ---------------------------------------------------------------- Search
+  /search:
+    get:
+      tags: [Search]
+      summary: Global search (Postgres full-text)
+      operationId: search
+      parameters:
+        - { name: q, in: query, required: true, schema: { type: string, minLength: 1, maxLength: 200 } }
+        - name: types
+          in: query
+          style: form
+          explode: false
+          schema:
+            type: array
+            items: { type: string, enum: [templates, projects, assets, stickers] }
+          description: Comma-separated. Defaults to all.
+        - { name: limit, in: query, schema: { type: integer, minimum: 1, maximum: 20, default: 8 }, description: Per type }
+      responses:
+        "200":
+          description: Results grouped by type
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  templates: { type: array, items: { $ref: "#/components/schemas/TemplateSummary" } }
+                  projects: { type: array, items: { $ref: "#/components/schemas/ProjectSummary" } }
+                  assets: { type: array, items: { $ref: "#/components/schemas/Asset" } }
+                  stickers: { type: array, items: { $ref: "#/components/schemas/LibraryItem" } }
+
+  # ---------------------------------------------------------------- AI
+  /ai/jobs:
+    post:
+      tags: [AI]
+      summary: Create an AI job
+      description: |
+        Flow: validate input → moderate the prompt (for text-to-image and write) → check the
+        plan and rate limit → debit credits from `plans.ts` costs in one DB transaction (a
+        `job_charge` ledger entry) → enqueue on BullMQ → 202. On failure or block the worker writes
+        a `job_refund` entry. An `Idempotency-Key` header is required, and a replay returns the
+        original job.
+      operationId: createAIJob
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema: { type: string, maxLength: 64 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AIJobCreate" }
+      responses:
+        "202":
+          description: Queued
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [jobId, status, creditsCharged]
+                properties:
+                  jobId: { type: string }
+                  status: { $ref: "#/components/schemas/AIJobStatus" }
+                  creditsCharged: { type: integer }
+        "400": { $ref: "#/components/responses/ValidationFailed" }
+        "402": { $ref: "#/components/responses/InsufficientCredits" }
+        "422": { $ref: "#/components/responses/ContentBlocked" }
+        "429": { $ref: "#/components/responses/RateLimited" }
+  /ai/jobs/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    get:
+      tags: [AI]
+      summary: Poll job status and result
+      description: Clients poll every 1–2 s while the job is queued or running (see ASSUMPTIONS D11).
+      operationId: getAIJob
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AIJob" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /ai/prompts:
+    get:
+      tags: [AI]
+      summary: My prompt history
+      operationId: listAIPrompts
+      parameters:
+        - name: tool
+          in: query
+          schema: { $ref: "#/components/schemas/AITool" }
+        - { name: favorite, in: query, schema: { type: boolean } }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, nextCursor]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/AIPrompt" }
+                  nextCursor: { type: [string, "null"] }
+  /ai/prompts/{id}/favorite:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      tags: [AI]
+      summary: Toggle favorite on a prompt
+      operationId: favoriteAIPrompt
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [favorite]
+              properties:
+                favorite: { type: boolean }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AIPrompt" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  # ---------------------------------------------------------------- Credits & Plans
+  /credits:
+    get:
+      tags: [Credits & Plans]
+      summary: Credit balance and current plan
+      operationId: getCredits
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [balance, plan, nextRefillAt]
+                properties:
+                  balance: { type: integer }
+                  plan: { $ref: "#/components/schemas/Plan" }
+                  nextRefillAt: { type: [string, "null"], format: date-time }
+  /credits/ledger:
+    get:
+      tags: [Credits & Plans]
+      summary: Credit ledger (usage history)
+      operationId: listCreditLedger
+      parameters:
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, nextCursor]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/LedgerEntry" }
+                  nextCursor: { type: [string, "null"] }
+  /plans:
+    get:
+      tags: [Credits & Plans]
+      summary: Plan catalogue (from packages/shared plans.ts)
+      operationId: listPlans
+      security: [{}, { cookieAuth: [] }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Plan" }
+
+  # ---------------------------------------------------------------- Flags
+  /flags:
+    get:
+      tags: [Flags]
+      summary: Feature flags evaluated for the current user
+      operationId: getFlags
+      security: [{}, { cookieAuth: [] }]
+      responses:
+        "200":
+          description: Map of flag key to boolean
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: { type: boolean }
+
+  # ---------------------------------------------------------------- Admin
+  /admin/users:
+    get:
+      tags: [Admin]
+      summary: Search users
+      operationId: adminListUsers
+      x-required-role: admin
+      parameters:
+        - { name: q, in: query, schema: { type: string, maxLength: 200 }, description: Email or name }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, nextCursor]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/AdminUser" }
+                  nextCursor: { type: [string, "null"] }
+        "403": { $ref: "#/components/responses/Forbidden" }
+  /admin/users/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    patch:
+      tags: [Admin]
+      summary: Change role, plan, ban state, or grant credits
+      description: Every change writes an AuditLog entry. A credit grant writes a `grant` ledger entry with the reason.
+      operationId: adminUpdateUser
+      x-required-role: admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              minProperties: 1
+              properties:
+                role: { $ref: "#/components/schemas/Role" }
+                planId: { $ref: "#/components/schemas/PlanId" }
+                banned: { type: boolean }
+                creditGrant:
+                  type: object
+                  required: [amount, reason]
+                  properties:
+                    amount: { type: integer, minimum: -100000, maximum: 100000, not: { const: 0 } }
+                    reason: { type: string, minLength: 3, maxLength: 200 }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AdminUser" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+  /admin/templates:
+    get:
+      tags: [Admin]
+      summary: List all templates, including drafts
+      operationId: adminListTemplates
+      x-required-role: admin
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [draft, published, archived] }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TemplatePage" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Admin]
+      summary: Create a template draft (usually from an existing project)
+      operationId: adminCreateTemplate
+      x-required-role: admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TemplateInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Template" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+  /admin/templates/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    patch:
+      tags: [Admin]
+      summary: Update template metadata or document
+      operationId: adminUpdateTemplate
+      x-required-role: admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/TemplateInput" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Template" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "404": { $ref: "#/components/responses/NotFound" }
+    delete:
+      tags: [Admin]
+      summary: Archive a template
+      operationId: adminDeleteTemplate
+      x-required-role: admin
+      responses:
+        "204": { description: Archived }
+        "403": { $ref: "#/components/responses/Forbidden" }
+  /admin/templates/{id}/publish:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    post:
+      tags: [Admin]
+      summary: Publish or unpublish a template
+      operationId: adminPublishTemplate
+      x-required-role: admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [published]
+              properties:
+                published: { type: boolean }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Template" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+  /admin/assets:
+    get:
+      tags: [Admin]
+      summary: Library CMS — list stickers, fonts, backgrounds
+      operationId: adminListLibrary
+      x-required-role: admin
+      parameters:
+        - name: type
+          in: query
+          schema: { type: string, enum: [sticker, font, background] }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LibraryItemPage" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Admin]
+      summary: Add a library item (file already uploaded via /uploads)
+      operationId: adminCreateLibraryItem
+      x-required-role: admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LibraryItemInput" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LibraryItem" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+  /admin/assets/{id}:
+    parameters: [{ $ref: "#/components/parameters/Id" }]
+    patch:
+      tags: [Admin]
+      summary: Update a library item (tags, premium, license)
+      operationId: adminUpdateLibraryItem
+      x-required-role: admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/LibraryItemInput" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/LibraryItem" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    delete:
+      tags: [Admin]
+      summary: Remove a library item
+      operationId: adminDeleteLibraryItem
+      x-required-role: admin
+      responses:
+        "204": { description: Deleted }
+        "403": { $ref: "#/components/responses/Forbidden" }
+  /admin/flags:
+    get:
+      tags: [Admin]
+      summary: List feature flags
+      operationId: adminListFlags
+      x-required-role: admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/FeatureFlag" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    post:
+      tags: [Admin]
+      summary: Create a feature flag
+      operationId: adminCreateFlag
+      x-required-role: admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FeatureFlag" }
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FeatureFlag" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "409": { $ref: "#/components/responses/Conflict" }
+  /admin/flags/{key}:
+    parameters:
+      - { name: key, in: path, required: true, schema: { type: string, pattern: "^[a-z0-9_.-]{2,64}$" } }
+    patch:
+      tags: [Admin]
+      summary: Update a feature flag
+      operationId: adminUpdateFlag
+      x-required-role: admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/FeatureFlag" }
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/FeatureFlag" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+    delete:
+      tags: [Admin]
+      summary: Delete a feature flag
+      operationId: adminDeleteFlag
+      x-required-role: admin
+      responses:
+        "204": { description: Deleted }
+        "403": { $ref: "#/components/responses/Forbidden" }
+  /admin/reports:
+    get:
+      tags: [Admin]
+      summary: Moderation queue (blocked AI jobs, flagged uploads, user reports)
+      operationId: adminListReports
+      x-required-role: admin
+      parameters:
+        - name: status
+          in: query
+          schema: { type: string, enum: [open, actioned, dismissed], default: open }
+        - $ref: "#/components/parameters/Cursor"
+        - $ref: "#/components/parameters/Limit"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, nextCursor]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: "#/components/schemas/Report" }
+                  nextCursor: { type: [string, "null"] }
+        "403": { $ref: "#/components/responses/Forbidden" }
+  /admin/health:
+    get:
+      tags: [Admin]
+      summary: Detailed system health (queues, DB, storage, provider status)
+      operationId: adminHealth
+      x-required-role: admin
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  db: { $ref: "#/components/schemas/ComponentHealth" }
+                  redis: { $ref: "#/components/schemas/ComponentHealth" }
+                  storage: { $ref: "#/components/schemas/ComponentHealth" }
+                  queues:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        waiting: { type: integer }
+                        active: { type: integer }
+                        failed24h: { type: integer }
+                  aiProviders:
+                    type: object
+                    additionalProperties: { $ref: "#/components/schemas/ComponentHealth" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+
+  # ---------------------------------------------------------------- System
+  /health:
+    get:
+      tags: [System]
+      summary: Liveness/readiness probe
+      operationId: health
+      security: []
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status]
+                properties:
+                  status: { type: string, enum: [ok] }
+                  version: { type: string }
+        "503": { description: Dependency down }
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: better-auth.session_token
+      description: httpOnly, Secure, SameSite=Lax session cookie issued by Better Auth (/api/auth/*).
+
+  parameters:
+    Id:
+      name: id
+      in: path
+      required: true
+      schema: { type: string }
+    Cursor:
+      name: cursor
+      in: query
+      schema: { type: string }
+      description: Opaque cursor from a previous page's nextCursor.
+    Limit:
+      name: limit
+      in: query
+      schema: { type: integer, minimum: 1, maximum: 100, default: 24 }
+
+  responses:
+    Unauthenticated:
+      description: No valid session
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Forbidden:
+      description: Authenticated but lacking the required role
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    NotFound:
+      description: Resource not found or not owned by caller
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    ValidationFailed:
+      description: Request failed zod validation; details lists the issues
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    Conflict:
+      description: Revision conflict or duplicate
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    InsufficientCredits:
+      description: "error.code = INSUFFICIENT_CREDITS; details = { required, balance }"
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    PlanRequired:
+      description: "error.code = PLAN_REQUIRED; details = { feature, minPlan }"
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    ContentBlocked:
+      description: "error.code = CONTENT_BLOCKED; prompt rejected by moderation; details = { categories }"
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+    RateLimited:
+      description: "error.code = RATE_LIMITED"
+      headers:
+        Retry-After:
+          description: Seconds until the client may retry.
+          schema: { type: integer }
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/Error" }
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string, examples: [INSUFFICIENT_CREDITS] }
+            message: { type: string }
+            details: {}
+
+    Role:
+      type: string
+      enum: [user, admin]
+    PlanId:
+      type: string
+      enum: [free, plus, pro, team]
+
+    User:
+      type: object
+      required: [id, email, name, role, planId, createdAt]
+      properties:
+        id: { type: string }
+        email: { type: string, format: email }
+        emailVerified: { type: boolean }
+        name: { type: string }
+        image: { type: [string, "null"], format: uri }
+        role: { $ref: "#/components/schemas/Role" }
+        planId: { $ref: "#/components/schemas/PlanId" }
+        locale: { type: string, default: en }
+        theme: { type: string, enum: [system, light, dark] }
+        twoFactorEnabled: { type: boolean }
+        createdAt: { type: string, format: date-time }
+    UserUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+        image: { type: [string, "null"], format: uri }
+        locale: { type: string }
+        theme: { type: string, enum: [system, light, dark] }
+        marketingEmails: { type: boolean }
+    AdminUser:
+      allOf:
+        - $ref: "#/components/schemas/User"
+        - type: object
+          properties:
+            banned: { type: boolean }
+            creditBalance: { type: integer }
+            lastSeenAt: { type: [string, "null"], format: date-time }
+
+    # ---- Projects
+    ProjectSummary:
+      type: object
+      required: [id, name, width, height, updatedAt]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        width: { type: integer }
+        height: { type: integer }
+        thumbnailUrl: { type: [string, "null"], format: uri }
+        folderId: { type: [string, "null"] }
+        updatedAt: { type: string, format: date-time }
+    Project:
+      allOf:
+        - $ref: "#/components/schemas/ProjectSummary"
+        - type: object
+          required: [revision, schemaVersion, document]
+          properties:
+            revision: { type: integer, description: Incremented on every save; used for optimistic concurrency }
+            schemaVersion: { type: integer, description: "editor-core document schema version; older documents are migrated on load" }
+            document:
+              type: object
+              description: Opaque here. Validated by the zod schema in packages/editor-core (pages → layers → objects → effects).
+              additionalProperties: true
+            templateId: { type: [string, "null"] }
+            createdAt: { type: string, format: date-time }
+    ProjectSummaryPage:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/ProjectSummary" }
+        nextCursor: { type: [string, "null"] }
+    ProjectCreate:
+      type: object
+      properties:
+        name: { type: string, maxLength: 120, default: Untitled design }
+        sizePreset: { type: string, description: "Key from shared size presets, e.g. instagram_story" }
+        width: { type: integer, minimum: 16, maximum: 8000 }
+        height: { type: integer, minimum: 16, maximum: 8000 }
+        folderId: { type: string }
+        fromAssetId: { type: string, description: Start from an uploaded photo (photo-editor entry point) }
+    ProjectUpdate:
+      type: object
+      required: [revision]
+      properties:
+        revision: { type: integer }
+        name: { type: string, maxLength: 120 }
+        folderId: { type: [string, "null"] }
+        schemaVersion: { type: integer }
+        document: { type: object, additionalProperties: true }
+        thumbnailAssetId: { type: string }
+    ProjectVersion:
+      type: object
+      required: [id, projectId, revision, createdAt]
+      properties:
+        id: { type: string }
+        projectId: { type: string }
+        revision: { type: integer }
+        label: { type: [string, "null"] }
+        thumbnailUrl: { type: [string, "null"], format: uri }
+        createdAt: { type: string, format: date-time }
+
+    # ---- Assets
+    Asset:
+      type: object
+      required: [id, kind, status, mimeType, createdAt]
+      properties:
+        id: { type: string }
+        kind: { type: string, enum: [upload, stock, sticker, ai_output, export, template_preview] }
+        status: { type: string, enum: [pending, processing, ready, rejected] }
+        mimeType: { type: string }
+        width: { type: [integer, "null"] }
+        height: { type: [integer, "null"] }
+        size: { type: [integer, "null"] }
+        url: { type: [string, "null"], format: uri, description: Signed or CDN URL of the processed original }
+        thumbnailUrl: { type: [string, "null"], format: uri }
+        folderId: { type: [string, "null"] }
+        rejectionReason: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+    AssetPage:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/Asset" }
+        nextCursor: { type: [string, "null"] }
+    Folder:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        parentId: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+    FolderInput:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 80 }
+        parentId: { type: [string, "null"] }
+
+    # ---- Templates
+    TemplateCategory:
+      type: object
+      required: [id, slug, name]
+      properties:
+        id: { type: string }
+        slug: { type: string }
+        name: { type: string }
+        parentId: { type: [string, "null"] }
+        templateCount: { type: integer }
+    TemplateSummary:
+      type: object
+      required: [id, title, previewUrl, width, height, premium]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        previewUrl: { type: string, format: uri }
+        width: { type: integer }
+        height: { type: integer }
+        sizePreset: { type: [string, "null"] }
+        premium: { type: boolean }
+        favorited: { type: boolean, description: Present when authenticated }
+    Template:
+      allOf:
+        - $ref: "#/components/schemas/TemplateSummary"
+        - type: object
+          properties:
+            description: { type: [string, "null"] }
+            categoryIds: { type: array, items: { type: string } }
+            tags: { type: array, items: { type: string } }
+            styles: { type: array, items: { type: string } }
+            dominantColors: { type: array, items: { type: string } }
+            status: { type: string, enum: [draft, published, archived] }
+            useCount: { type: integer }
+            publishedAt: { type: [string, "null"], format: date-time }
+    TemplatePage:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/TemplateSummary" }
+        nextCursor: { type: [string, "null"] }
+    TemplateInput:
+      type: object
+      properties:
+        title: { type: string, minLength: 1, maxLength: 120 }
+        description: { type: string, maxLength: 500 }
+        fromProjectId: { type: string, description: Copy document and size from this project }
+        categoryIds: { type: array, items: { type: string } }
+        tags: { type: array, items: { type: string, maxLength: 40 }, maxItems: 30 }
+        styles: { type: array, items: { type: string } }
+        premium: { type: boolean }
+
+    # ---- Content
+    License:
+      type: object
+      required: [type, commercialUse]
+      properties:
+        type: { type: string, enum: [cc0, unsplash, pexels, ofl, apache2, proprietary_owned] }
+        commercialUse: { type: boolean }
+        attribution: { type: [string, "null"] }
+        sourceUrl: { type: [string, "null"], format: uri }
+    LibraryItem:
+      type: object
+      required: [id, type, name, url, premium, license]
+      properties:
+        id: { type: string }
+        type: { type: string, enum: [sticker, font, background] }
+        name: { type: string }
+        url: { type: string, format: uri }
+        thumbnailUrl: { type: [string, "null"], format: uri }
+        tags: { type: array, items: { type: string } }
+        premium: { type: boolean }
+        license: { $ref: "#/components/schemas/License" }
+    LibraryItemInput:
+      type: object
+      properties:
+        type: { type: string, enum: [sticker, font, background] }
+        assetId: { type: string }
+        name: { type: string, maxLength: 120 }
+        tags: { type: array, items: { type: string, maxLength: 40 }, maxItems: 30 }
+        category: { type: string }
+        premium: { type: boolean }
+        license: { $ref: "#/components/schemas/License" }
+    LibraryItemPage:
+      type: object
+      required: [items, nextCursor]
+      properties:
+        items:
+          type: array
+          items: { $ref: "#/components/schemas/LibraryItem" }
+        nextCursor: { type: [string, "null"] }
+    Font:
+      type: object
+      required: [id, family, source, variants]
+      properties:
+        id: { type: string }
+        family: { type: string }
+        source: { type: string, enum: [google, custom] }
+        variants: { type: array, items: { type: string }, examples: [["400", "700", "400italic"]] }
+        cssUrl: { type: [string, "null"], format: uri }
+        premium: { type: boolean }
+    StockPhoto:
+      type: object
+      required: [provider, providerId, previewUrl, fullUrl, width, height, attribution]
+      properties:
+        provider: { type: string, enum: [unsplash, pexels] }
+        providerId: { type: string }
+        previewUrl: { type: string, format: uri }
+        fullUrl: { type: string, format: uri }
+        width: { type: integer }
+        height: { type: integer }
+        color: { type: [string, "null"] }
+        attribution:
+          type: object
+          required: [authorName, authorUrl]
+          properties:
+            authorName: { type: string }
+            authorUrl: { type: string, format: uri }
+            downloadTrackingUrl: { type: [string, "null"], format: uri }
+
+    # ---- Favorites
+    FavoriteType:
+      type: string
+      enum: [template, sticker, font, asset, stock_photo]
+    FavoriteRef:
+      type: object
+      required: [type, refId]
+      properties:
+        type: { $ref: "#/components/schemas/FavoriteType" }
+        refId: { type: string }
+    Favorite:
+      allOf:
+        - $ref: "#/components/schemas/FavoriteRef"
+        - type: object
+          properties:
+            createdAt: { type: string, format: date-time }
+            preview: { type: [string, "null"], format: uri }
+
+    # ---- AI
+    AITool:
+      type: string
+      enum: [bg_remove, text_to_image, write]
+    AIJobStatus:
+      type: string
+      enum: [queued, running, succeeded, failed, blocked]
+    AIJobCreate:
+      oneOf:
+        - type: object
+          required: [tool, input]
+          properties:
+            tool: { const: bg_remove }
+            input:
+              type: object
+              required: [assetId]
+              properties:
+                assetId: { type: string }
+        - type: object
+          required: [tool, input]
+          properties:
+            tool: { const: text_to_image }
+            input:
+              type: object
+              required: [prompt]
+              properties:
+                prompt: { type: string, minLength: 3, maxLength: 1000 }
+                negativePrompt: { type: string, maxLength: 500 }
+                stylePreset: { type: string }
+                aspectRatio: { type: string, enum: ["1:1", "4:5", "9:16", "16:9", "3:2", "2:3"], default: "1:1" }
+                seed: { type: integer, minimum: 0 }
+                count: { type: integer, minimum: 1, maximum: 4, default: 1 }
+        - type: object
+          required: [tool, input]
+          properties:
+            tool: { const: write }
+            input:
+              type: object
+              required: [kind, brief]
+              properties:
+                kind: { type: string, enum: [caption, ad_copy, slogan, hashtags] }
+                brief: { type: string, minLength: 3, maxLength: 1000 }
+                tone: { type: string, enum: [friendly, professional, playful, bold] }
+                count: { type: integer, minimum: 1, maximum: 5, default: 3 }
+    AIJob:
+      type: object
+      required: [id, tool, status, creditsCharged, createdAt]
+      properties:
+        id: { type: string }
+        tool: { $ref: "#/components/schemas/AITool" }
+        status: { $ref: "#/components/schemas/AIJobStatus" }
+        progress: { type: [number, "null"], minimum: 0, maximum: 1 }
+        creditsCharged: { type: integer }
+        creditsRefunded: { type: integer }
+        result:
+          type: [object, "null"]
+          properties:
+            assetIds: { type: array, items: { type: string }, description: "Output images (bg_remove, text_to_image)" }
+            texts: { type: array, items: { type: string }, description: Output texts (write) }
+        error:
+          type: [object, "null"]
+          properties:
+            code: { type: string }
+            message: { type: string }
+        createdAt: { type: string, format: date-time }
+        finishedAt: { type: [string, "null"], format: date-time }
+    AIPrompt:
+      type: object
+      required: [id, tool, prompt, createdAt]
+      properties:
+        id: { type: string }
+        tool: { $ref: "#/components/schemas/AITool" }
+        prompt: { type: string }
+        params: { type: object, additionalProperties: true }
+        favorite: { type: boolean }
+        lastJobId: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+
+    # ---- Credits & plans
+    LedgerEntry:
+      type: object
+      required: [id, delta, reason, balanceAfter, createdAt]
+      properties:
+        id: { type: string }
+        delta: { type: integer, description: "Positive is a credit, negative is a debit" }
+        reason: { type: string, enum: [monthly_grant, admin_grant, job_charge, job_refund, purchase] }
+        balanceAfter: { type: integer }
+        aiJobId: { type: [string, "null"] }
+        note: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+    Plan:
+      type: object
+      required: [id, name, monthlyCredits, limits, features]
+      properties:
+        id: { $ref: "#/components/schemas/PlanId" }
+        name: { type: string }
+        priceMonthlyCents: { type: [integer, "null"], description: Display only until Stripe (Phase 5) }
+        monthlyCredits: { type: integer }
+        limits:
+          type: object
+          properties:
+            maxUploadBytes: { type: integer }
+            storageBytes: { type: integer }
+            maxExportPx: { type: integer }
+            aiJobsPerMinute: { type: integer }
+        features:
+          type: object
+          properties:
+            premiumTemplates: { type: boolean }
+            premiumFilters: { type: boolean }
+            watermarkFree: { type: boolean }
+            commercialLicense: { type: boolean }
+        creditCosts:
+          type: object
+          additionalProperties: { type: integer }
+          description: Credits per AI tool, keyed by AITool.
+
+    # ---- Flags, moderation, health
+    FeatureFlag:
+      type: object
+      required: [key, enabled]
+      properties:
+        key: { type: string, pattern: "^[a-z0-9_.-]{2,64}$" }
+        description: { type: string }
+        enabled: { type: boolean }
+        rolloutPercent: { type: integer, minimum: 0, maximum: 100 }
+        allowUserIds: { type: array, items: { type: string } }
+        allowRoles: { type: array, items: { $ref: "#/components/schemas/Role" } }
+    Report:
+      type: object
+      required: [id, source, targetType, targetId, status, createdAt]
+      properties:
+        id: { type: string }
+        source: { type: string, enum: [ai_moderation, upload_scan, user_report] }
+        targetType: { type: string, enum: [ai_job, asset, project, template, user] }
+        targetId: { type: string }
+        reason: { type: string }
+        categories: { type: array, items: { type: string } }
+        status: { type: string, enum: [open, actioned, dismissed] }
+        reporterId: { type: [string, "null"] }
+        createdAt: { type: string, format: date-time }
+    ComponentHealth:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [ok, degraded, down] }
+        latencyMs: { type: integer }
+        message: { type: string }
