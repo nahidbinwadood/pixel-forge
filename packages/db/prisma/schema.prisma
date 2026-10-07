@@ -1,0 +1,423 @@
+// PixelForge — MVP schema (Phases 1–4 + billing stub). V2+ models are specified in docs/DATA_MODEL.md
+// and added in their phase. Auth tables follow Better Auth's Prisma adapter shape.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum MemberRole {
+  owner
+  admin
+  editor
+  viewer
+}
+
+enum AssetKind {
+  upload
+  stock
+  sticker
+  ai_output
+  export
+  template_preview
+}
+
+enum AssetStatus {
+  pending // presigned, not yet uploaded
+  processing // worker validating + thumbnailing
+  ready
+  rejected // failed MIME/moderation
+}
+
+enum AIJobStatus {
+  queued
+  running
+  succeeded
+  failed
+  blocked // moderation
+}
+
+enum LedgerReason {
+  monthly_grant
+  admin_grant
+  job_charge
+  job_refund
+  purchase // Phase 5
+}
+
+enum ReportStatus {
+  open
+  actioned
+  dismissed
+}
+
+// ---------- Auth (Better Auth) ----------
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  emailVerified    Boolean   @default(false)
+  name             String?
+  image            String?
+  role             Role      @default(user)
+  locale           String    @default("en")
+  twoFactorEnabled Boolean   @default(false)
+  bannedAt         DateTime?
+  deletedAt        DateTime? // soft-delete → hard purge job after 30 days (GDPR)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  sessions     Session[]
+  accounts     Account[]
+  twoFactors   TwoFactor[]
+  memberships  Membership[]
+  projects     Project[]     @relation("ProjectCreator")
+  assets       Asset[]
+  aiJobs       AIJob[]
+  ledger       CreditLedger[]
+  subscription Subscription?
+  favorites    Favorite[]
+  recents      RecentUse[]
+  reports      Report[]      @relation("Reporter")
+  auditLogs    AuditLog[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String? // hashed by Better Auth
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+model TwoFactor {
+  id          String @id @default(cuid())
+  userId      String
+  secret      String
+  backupCodes String
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ---------- Workspaces (personal workspace auto-created at signup; teams UI is Phase 9) ----------
+
+model Workspace {
+  id        String       @id @default(cuid())
+  name      String
+  personal  Boolean      @default(true)
+  createdAt DateTime     @default(now())
+  members   Membership[]
+  projects  Project[]
+  folders   Folder[]
+  assets    Asset[]
+}
+
+model Membership {
+  workspaceId String
+  userId      String
+  role        MemberRole @default(owner)
+  createdAt   DateTime   @default(now())
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([workspaceId, userId])
+  @@index([userId])
+}
+
+model Folder {
+  id          String    @id @default(cuid())
+  workspaceId String
+  parentId    String?
+  name        String
+  createdAt   DateTime  @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  parent      Folder?   @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Folder[]  @relation("FolderTree")
+  projects    Project[]
+
+  @@index([workspaceId, parentId])
+}
+
+// ---------- Projects / designs ----------
+
+model Project {
+  id            String           @id @default(cuid())
+  workspaceId   String
+  creatorId     String
+  folderId      String?
+  templateId    String? // template it was created from
+  name          String           @default("Untitled design")
+  width         Int
+  height        Int
+  document      Json // editor-core EditorDocument; validated via migrate() on every write
+  schemaVersion Int
+  thumbnailKey  String?
+  revision      Int              @default(0) // optimistic concurrency for autosave
+  deletedAt     DateTime? // trash
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+  workspace     Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  creator       User             @relation("ProjectCreator", fields: [creatorId], references: [id])
+  folder        Folder?          @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  template      Template?        @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  versions      ProjectVersion[]
+
+  @@index([workspaceId, deletedAt, updatedAt])
+}
+
+/// Named snapshots (manual "save version" + one per session). Full history UI is V2.
+model ProjectVersion {
+  id        String   @id @default(cuid())
+  projectId String
+  revision  Int
+  document  Json
+  label     String?
+  createdAt DateTime @default(now())
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId, createdAt])
+}
+
+// ---------- Assets ----------
+
+model Asset {
+  id          String      @id @default(cuid())
+  workspaceId String? // null = global library content (stock cache, stickers)
+  ownerId     String?
+  kind        AssetKind
+  status      AssetStatus @default(pending)
+  storageKey  String      @unique
+  mimeType    String
+  bytes       Int
+  width       Int?
+  height      Int?
+  /// { thumb: key, preview: key, ... } — written by worker
+  variants    Json        @default("{}")
+  tags        String[]
+  premium     Boolean     @default(false)
+  /// License + attribution: { source, author, url, license, commercialUse }
+  license     Json?
+  sha256      String?
+  createdAt   DateTime    @default(now())
+  workspace   Workspace?  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  owner       User?       @relation(fields: [ownerId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, kind, createdAt])
+  @@index([kind, status])
+  @@index([sha256])
+}
+
+model Font {
+  id        String   @id @default(cuid())
+  family    String   @unique
+  source    String // "google" | "upload"
+  weights   Int[]
+  premium   Boolean  @default(false)
+  license   String
+  createdAt DateTime @default(now())
+}
+
+// ---------- Templates ----------
+
+model TemplateCategory {
+  id        String     @id @default(cuid())
+  slug      String     @unique
+  name      String
+  sortOrder Int        @default(0)
+  templates Template[]
+}
+
+model Template {
+  id             String           @id @default(cuid())
+  slug           String           @unique
+  title          String
+  description    String?
+  categoryId     String
+  width          Int
+  height         Int
+  sizePreset     String // e.g. "instagram_post"
+  style          String[]
+  colors         String[] // dominant hex colors for filtering
+  tags           String[]
+  premium        Boolean          @default(false)
+  document       Json
+  schemaVersion  Int
+  previewAssetId String?
+  publishedAt    DateTime? // null = draft
+  useCount       Int              @default(0)
+  createdById    String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  category       TemplateCategory @relation(fields: [categoryId], references: [id])
+  projects       Project[]
+  // Full-text search: generated tsvector column + GIN index added in a raw SQL migration (Phase 3).
+
+  @@index([categoryId, publishedAt])
+  @@index([publishedAt, useCount])
+}
+
+// ---------- Favorites & recents (polymorphic on purpose: small, simple, no FK fan-out) ----------
+
+model Favorite {
+  userId     String
+  targetType String // template | asset | font | ai_job
+  targetId   String
+  createdAt  DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, targetType, targetId])
+}
+
+model RecentUse {
+  userId     String
+  targetType String
+  targetId   String
+  usedAt     DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, targetType, targetId])
+  @@index([userId, usedAt])
+}
+
+// ---------- AI ----------
+
+/// One row per AI request. Doubles as prompt history (input.prompt) — no separate AIPrompt table.
+model AIJob {
+  id            String      @id @default(cuid())
+  userId        String
+  tool          String // AITool from @pixelforge/shared
+  status        AIJobStatus @default(queued)
+  input         Json
+  output        Json? // { assetIds: [] } or { text: [] }
+  provider      String?
+  costCredits   Int
+  error         String?
+  idempotencyKey String     @unique
+  startedAt     DateTime?
+  finishedAt    DateTime?
+  createdAt     DateTime    @default(now())
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ledger        CreditLedger[]
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+}
+
+// ---------- Credits & plan (billing stub until Phase 5) ----------
+
+/// Append-only. Balance = SUM(delta) per user. Never UPDATE or DELETE rows.
+model CreditLedger {
+  id        String       @id @default(cuid())
+  userId    String
+  delta     Int
+  reason    LedgerReason
+  jobId     String?
+  note      String?
+  /// e.g. "grant:2026-10:<userId>" or "charge:<jobId>" — makes grants/charges/refunds idempotent
+  dedupeKey String       @unique
+  createdAt DateTime     @default(now())
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  job       AIJob?       @relation(fields: [jobId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+}
+
+model Subscription {
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  planId               String    @default("free") // PlanId from @pixelforge/shared
+  status               String    @default("active")
+  currentPeriodEnd     DateTime?
+  stripeCustomerId     String?   @unique // Phase 5
+  stripeSubscriptionId String?   @unique // Phase 5
+  updatedAt            DateTime  @updatedAt
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ---------- Platform ----------
+
+model FeatureFlag {
+  key         String   @id
+  description String?
+  enabled     Boolean  @default(false)
+  /// Optional targeting: { userIds?: [], roles?: [], percent?: 0-100 }
+  rules       Json?
+  updatedAt   DateTime @updatedAt
+}
+
+model Report {
+  id         String       @id @default(cuid())
+  reporterId String?
+  targetType String // asset | ai_job | template
+  targetId   String
+  reason     String
+  status     ReportStatus @default(open)
+  createdAt  DateTime     @default(now())
+  resolvedAt DateTime?
+  reporter   User?        @relation("Reporter", fields: [reporterId], references: [id], onDelete: SetNull)
+
+  @@index([status, createdAt])
+}
+
+/// Admin and security-relevant actions. Append-only.
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String?
+  action    String // e.g. "admin.credit_grant", "template.publish"
+  targetType String?
+  targetId  String?
+  meta      Json?
+  ip        String?
+  createdAt DateTime @default(now())
+  actor     User?    @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([actorId, createdAt])
+  @@index([action, createdAt])
+}

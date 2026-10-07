@@ -1,0 +1,27 @@
+{
+  "name": "@pixelforge/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p .",
+    "generate": "prisma generate",
+    "migrate": "prisma migrate dev",
+    "seed": "tsx --env-file=../../.env src/seed.ts",
+    "validate": "prisma validate"
+  },
+  "dependencies": {
+    "@pixelforge/editor-core": "workspace:*",
+    "@pixelforge/shared": "workspace:*",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
+    "dotenv": "^18.0.5"
+  },
+  "devDependencies": {
+    "prisma": "7.10.0",
+    "tsx": "^4.23.15"
+  }
+}

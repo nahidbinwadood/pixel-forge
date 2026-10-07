@@ -1,0 +1,38 @@
+# Local infra only. Apps run on the host via `pnpm dev`.
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: pixelforge
+      POSTGRES_PASSWORD: pixelforge
+      POSTGRES_DB: pixelforge
+    ports: ["5432:5432"]
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pixelforge"]
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: pixelforge
+      MINIO_ROOT_PASSWORD: pixelforge-secret
+    ports: ["9000:9000", "9001:9001"]
+    volumes: [miniodata:/data]
+
+  minio-init:
+    image: minio/mc:latest
+    depends_on: [minio]
+    entrypoint: >
+      /bin/sh -c "until mc alias set local http://minio:9000 pixelforge pixelforge-secret; do sleep 1; done;
+      mc mb -p local/pixelforge-uploads local/pixelforge-public; mc anonymous set download local/pixelforge-public"
+
+volumes:
+  pgdata:
+  miniodata:
