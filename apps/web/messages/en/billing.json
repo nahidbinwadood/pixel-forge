@@ -37,8 +37,8 @@
       "yes": "Included",
       "no": "—",
       "px": "{px}px",
-      "mb": "{gb} GB",
-      "seatCount": "{count, plural, one {# seat} other {# seats}}"
+      "gb": "{gb} GB",
+      "mb": "{mb} MB"
     },
     "bundles": {
       "title": "Need credits without a subscription?",
